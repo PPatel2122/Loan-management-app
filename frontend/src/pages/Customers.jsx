@@ -5,10 +5,41 @@ import {
   Plus, Check, X, Clock, Trash2, Users, Search, PlusCircle, UserPlus, UserCheck,
   ArrowLeft, Edit3, ChevronRight, Layers, Phone, MapPin, CreditCard, Calendar,
   TrendingUp, Percent, DollarSign, CheckCircle2, AlertCircle, Briefcase, Home, Shield,
-  BookOpen, ChevronDown, ChevronUp, Printer
+  BookOpen, ChevronDown, ChevronUp, Printer, Camera
 } from 'lucide-react';
 
 // Color-coded Credit Gauge Helper (Redesigned with premium neon rings and typography)
+const compressImage = (file, maxWidth = 600, quality = 0.6) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 const renderCreditGauge = (score, grade) => {
   const radius = 36;
   const stroke = 6;
@@ -123,13 +154,29 @@ const Customers = () => {
   const initialCustomerState = {
     name: '', phone: '', address: '', fatherName: '', motherName: '',
     spouseName: '', childrenNames: '', totalChildren: '0', aadhaarNumber: '',
-    occupation: '', monthlyIncome: '', homeType: '', permanentAddress: '', assets: ''
+    occupation: '', monthlyIncome: '', homeType: '', permanentAddress: '', assets: '',
+    customerPhoto: '', aadhaarPhoto: '', email: ''
   };
 
   // Main Forms State
   const [formData, setFormData] = useState(initialCustomerState);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const handleImageCapture = async (e, field, setValues, values) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const compressedBase64 = await compressImage(file);
+      setValues({
+        ...values,
+        [field]: compressedBase64
+      });
+    } catch (err) {
+      console.error('Error capturing image:', err);
+      alert('Failed to capture and compress image. Please try again.');
+    }
+  };
 
   // Unified Group Builder Modal Form State
   const [groupName, setGroupName] = useState('');
@@ -157,6 +204,27 @@ const Customers = () => {
     startDate: new Date().toISOString().split('T')[0],
     paymentFrequency: 'Monthly'
   });
+
+  // OTP Verification States
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpCustomerId, setOtpCustomerId] = useState('');
+  const [otpCustomerName, setOtpCustomerName] = useState('');
+  const [otpCustomerEmail, setOtpCustomerEmail] = useState('');
+  const [otpValue, setOtpValue] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [otpSuccess, setOtpSuccess] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Resend OTP Cooldown countdown timer
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => {
+      setResendCooldown(prev => prev - 1);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     fetchCustomers();
@@ -260,10 +328,15 @@ const Customers = () => {
         totalChildren: parseInt(formData.totalChildren) || 0,
         monthlyIncome: parseFloat(formData.monthlyIncome) || 0
       };
-      await api.post('/customers', payload);
+      const { data } = await api.post('/customers', payload);
       setShowModal(false);
       setFormData(initialCustomerState);
       fetchCustomers();
+      
+      // Auto-trigger OTP verification if customer created successfully
+      if (data && data._id) {
+        triggerSendOTP(data._id, data.name, data.email);
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Error creating customer');
     } finally {
@@ -362,7 +435,10 @@ const Customers = () => {
           monthlyIncome: parseFloat(m.monthlyIncome) || 0,
           homeType: m.homeType,
           permanentAddress: m.permanentAddress.trim() || m.address.trim(),
-          assets: m.assets.trim()
+          assets: m.assets.trim(),
+          email: m.email ? m.email.trim() : '',
+          customerPhoto: m.customerPhoto || '',
+          aadhaarPhoto: m.aadhaarPhoto || ''
         };
       }
     });
@@ -416,6 +492,62 @@ const Customers = () => {
     }
   };
 
+  // OTP Verification Triggers
+  const triggerSendOTP = async (customerId, name, email) => {
+    if (!email) {
+      alert(`Customer ${name} does not have a registered email address. Please edit their profile to add an email address first.`);
+      return;
+    }
+    
+    setOtpCustomerId(customerId);
+    setOtpCustomerName(name);
+    setOtpCustomerEmail(email);
+    setOtpValue('');
+    setOtpError('');
+    setOtpSuccess('');
+    setShowOtpModal(true);
+    setSendingOtp(true);
+
+    try {
+      await api.post(`/customers/${customerId}/send-otp`);
+      setOtpSuccess(`Verification code sent successfully to ${email}`);
+      setResendCooldown(60); // 60 seconds cooldown
+    } catch (err) {
+      setOtpError(err.response?.data?.message || 'Error sending OTP verification email');
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOTPSubmit = async (e) => {
+    e.preventDefault();
+    setOtpError('');
+    setOtpSuccess('');
+    setVerifyingOtp(true);
+
+    try {
+      const { data } = await api.post(`/customers/${otpCustomerId}/verify-otp`, { otp: otpValue });
+      setOtpSuccess('KYC verified successfully!');
+      
+      // Update selectedGroup UI state
+      if (selectedGroup) {
+        const updatedMembers = selectedGroup.members.map(m => m._id === otpCustomerId ? data.customer : m);
+        setSelectedGroup({ ...selectedGroup, members: updatedMembers });
+      }
+
+      setCustomers(customers.map(c => c._id === otpCustomerId ? data.customer : c));
+      fetchGroups();
+      
+      setTimeout(() => {
+        setShowOtpModal(false);
+      }, 1500);
+    } catch (err) {
+      setOtpError(err.response?.data?.message || 'Invalid or expired OTP code');
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   // Edit Customer profile triggers
   const handleOpenEditCustomerModal = (customer) => {
     setEditingCustomer(customer);
@@ -433,7 +565,9 @@ const Customers = () => {
       monthlyIncome: customer.monthlyIncome !== undefined ? String(customer.monthlyIncome) : '',
       homeType: customer.homeType || '',
       permanentAddress: customer.permanentAddress || '',
-      assets: customer.assets || ''
+      assets: customer.assets || '',
+      customerPhoto: customer.customerPhoto || '',
+      aadhaarPhoto: customer.aadhaarPhoto || ''
     });
     setShowEditMemberModal(true);
   };
@@ -647,7 +781,7 @@ const Customers = () => {
           <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
             <Users size={12} /> Personal Identity Details
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
               <input 
@@ -655,6 +789,15 @@ const Customers = () => {
                 placeholder="Borrower's complete name"
                 className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.name} onChange={e => setValues({...values, name: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
+              <input 
+                type="email" required
+                placeholder="Borrower's email address"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                value={values.email || ''} onChange={e => setValues({...values, email: e.target.value})}
               />
             </div>
             <div>
@@ -807,6 +950,81 @@ const Customers = () => {
             </div>
           </div>
         </fieldset>
+
+        {/* Document & Camera Capture */}
+        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
+          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+            <Camera size={12} /> Document & Photo Capture
+          </legend>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Customer Photo Column */}
+            <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Customer Photograph</span>
+              
+              {values.customerPhoto ? (
+                <div className="relative w-32 h-32 rounded-full border-2 border-violet-100 overflow-hidden shadow-inner group">
+                  <img src={values.customerPhoto} alt="Customer Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={() => setValues({...values, customerPhoto: ''})}
+                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
+                  >
+                    Retake Photo
+                  </button>
+                </div>
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
+                  <span className="text-[10px] font-extrabold uppercase text-slate-400">No Image</span>
+                </div>
+              )}
+              
+              <label className="bg-violet-50 hover:bg-violet-100 text-violet-750 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
+                Capture Customer Photo
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="user" 
+                  className="hidden" 
+                  onChange={(e) => handleImageCapture(e, 'customerPhoto', setValues, values)} 
+                />
+              </label>
+            </div>
+
+            {/* Aadhaar Card Column */}
+            <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aadhaar Card Document</span>
+              
+              {values.aadhaarPhoto ? (
+                <div className="relative w-48 h-28 rounded-xl border-2 border-violet-100 overflow-hidden shadow-inner group">
+                  <img src={values.aadhaarPhoto} alt="Aadhaar Preview" className="w-full h-full object-cover" />
+                  <button 
+                    type="button"
+                    onClick={() => setValues({...values, aadhaarPhoto: ''})}
+                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
+                  >
+                    Retake Aadhaar
+                  </button>
+                </div>
+              ) : (
+                <div className="w-48 h-28 rounded-xl bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
+                  <span className="text-[10px] font-extrabold uppercase text-slate-400">No Document</span>
+                </div>
+              )}
+              
+              <label className="bg-violet-50 hover:bg-violet-100 text-violet-755 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
+                Capture Aadhaar Card
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  capture="environment" 
+                  className="hidden" 
+                  onChange={(e) => handleImageCapture(e, 'aadhaarPhoto', setValues, values)} 
+                />
+              </label>
+            </div>
+          </div>
+        </fieldset>
       </div>
     );
   };
@@ -950,8 +1168,12 @@ const Customers = () => {
                         className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:bg-slate-50/40 select-none"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-sm shrink-0">
-                            {member.name ? member.name.charAt(0).toUpperCase() : 'B'}
+                          <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-sm shrink-0 overflow-hidden border border-slate-100">
+                            {member.customerPhoto ? (
+                              <img src={member.customerPhoto} alt={member.name} className="w-full h-full object-cover" />
+                            ) : (
+                              member.name ? member.name.charAt(0).toUpperCase() : 'B'
+                            )}
                           </div>
                           <div className="text-left">
                             <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2 flex-wrap">
@@ -993,14 +1215,44 @@ const Customers = () => {
                         <div className="border-t border-slate-100 bg-slate-50/40 p-5 space-y-4 animate-fade-in text-left">
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                             {/* Personal Card */}
-                            <div className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs space-y-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">KYC Profile</span>
-                              <div className="space-y-1.5 text-xs text-slate-700">
-                                <p><strong>Father:</strong> {member.fatherName || 'N/A'}</p>
-                                <p><strong>Mother:</strong> {member.motherName || 'N/A'}</p>
-                                <p><strong>Spouse:</strong> {member.spouseName || 'N/A'}</p>
-                                <p><strong>Aadhaar:</strong> {member.aadhaarNumber || 'N/A'}</p>
+                            <div className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs space-y-2 flex flex-col justify-between">
+                              <div>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">KYC Profile</span>
+                                <div className="space-y-1.5 text-xs text-slate-700 mt-2">
+                                  <p><strong>Father:</strong> {member.fatherName || 'N/A'}</p>
+                                  <p><strong>Mother:</strong> {member.motherName || 'N/A'}</p>
+                                  <p><strong>Spouse:</strong> {member.spouseName || 'N/A'}</p>
+                                  <p><strong>Aadhaar:</strong> {member.aadhaarNumber || 'N/A'}</p>
+                                </div>
                               </div>
+                              
+                              {/* Photos section */}
+                              {(member.customerPhoto || member.aadhaarPhoto) && (
+                                <div className="flex gap-3 pt-3 border-t border-slate-100 mt-3">
+                                  {member.customerPhoto && (
+                                    <div className="text-center">
+                                      <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Photo</p>
+                                      <img 
+                                        src={member.customerPhoto} 
+                                        alt="Customer" 
+                                        onClick={(e) => { e.stopPropagation(); window.open(member.customerPhoto, '_blank'); }}
+                                        className="w-12 h-12 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-85 transition"
+                                      />
+                                    </div>
+                                  )}
+                                  {member.aadhaarPhoto && (
+                                    <div className="text-center">
+                                      <p className="text-[8px] text-slate-400 font-bold uppercase mb-1">Aadhaar</p>
+                                      <img 
+                                        src={member.aadhaarPhoto} 
+                                        alt="Aadhaar" 
+                                        onClick={(e) => { e.stopPropagation(); window.open(member.aadhaarPhoto, '_blank'); }}
+                                        className="w-16 h-12 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-85 transition"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             {/* Financial Card */}
@@ -1031,7 +1283,13 @@ const Customers = () => {
                           {/* Action Bar */}
                           <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                             <button
-                              onClick={() => handleToggleVerification(member)}
+                              onClick={() => {
+                                if (member.isVerified) {
+                                  handleToggleVerification(member);
+                                } else {
+                                  triggerSendOTP(member._id, member.name, member.email);
+                                }
+                              }}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                                 member.isVerified 
                                   ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100'
@@ -1318,19 +1576,23 @@ const Customers = () => {
                         {filteredCustomers.map((c) => (
                           <tr key={c._id} className="hover:bg-slate-50/60 transition cursor-pointer" onClick={() => handleOpenEditCustomerModal(c)}>
                             <td className="px-6 py-4 font-black text-slate-800 flex items-center gap-2.5 text-sm">
-                              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0">
-                                {c.name ? c.name.charAt(0).toUpperCase() : 'B'}
+                              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0 overflow-hidden border border-slate-100">
+                                {c.customerPhoto ? (
+                                  <img src={c.customerPhoto} alt={c.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  c.name ? c.name.charAt(0).toUpperCase() : 'B'
+                                )}
                               </div>
                               {c.name}
                             </td>
                             <td className="px-6 py-4 text-slate-600 font-bold text-xs">{c.phone}</td>
-                            <td className="px-6 py-4">
+                             <td className="px-6 py-4">
                               {c.isVerified ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 cursor-pointer animate-fade-in" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
                                   <Check size={11} /> Verified
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100 cursor-pointer animate-fade-in" onClick={e => { e.stopPropagation(); triggerSendOTP(c._id, c.name, c.email); }}>
                                   <Clock size={11} /> Pending
                                 </span>
                               )}
@@ -1951,6 +2213,110 @@ const Customers = () => {
                   </div>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      {showOtpModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-[60] p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-up">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                  <UserCheck className="text-violet-600" size={20} /> KYC Email Verification
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Enter the 6-digit OTP code sent to the customer</p>
+              </div>
+              <button 
+                onClick={() => setShowOtpModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Customer context info card */}
+              <div className="bg-violet-50/50 border border-violet-100 p-4 rounded-2xl text-left">
+                <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider block">Customer Register</span>
+                <h4 className="font-extrabold text-slate-800 text-sm mt-1">{otpCustomerName}</h4>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
+                  Email: <span className="font-bold text-slate-700">{otpCustomerEmail}</span>
+                </p>
+              </div>
+
+              {otpError && (
+                <div className="p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <AlertCircle size={14} className="shrink-0" />
+                  <span>{otpError}</span>
+                </div>
+              )}
+
+              {otpSuccess && (
+                <div className="p-3 bg-emerald-50 border border-emerald-150 text-emerald-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <CheckCircle2 size={14} className="shrink-0" />
+                  <span>{otpSuccess}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleVerifyOTPSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 text-center">
+                    Enter Verification OTP Code
+                  </label>
+                  <input 
+                    type="text"
+                    required
+                    maxLength={6}
+                    pattern="\d{6}"
+                    placeholder="000000"
+                    value={otpValue}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '');
+                      setOtpValue(val);
+                    }}
+                    className="w-full text-center text-3xl font-black tracking-[10px] pl-[10px] py-3 border border-slate-350 rounded-2xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-slate-50 text-slate-800 uppercase"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-slate-400">Didn't receive the OTP?</span>
+                  {resendCooldown > 0 ? (
+                    <span className="text-slate-400 flex items-center gap-1.5">
+                      <Clock size={13} /> Resend in {resendCooldown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={sendingOtp}
+                      onClick={() => triggerSendOTP(otpCustomerId, otpCustomerName, otpCustomerEmail)}
+                      className="text-violet-600 hover:text-violet-800 transition cursor-pointer disabled:opacity-50"
+                    >
+                      {sendingOtp ? 'Sending...' : 'Resend OTP'}
+                    </button>
+                  )}
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowOtpModal(false)}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={verifyingOtp || otpValue.length !== 6}
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
+                  >
+                    {verifyingOtp ? 'Verifying...' : 'Verify OTP KYC'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
