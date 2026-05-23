@@ -75,11 +75,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {/* User Profile Card & Logout */}
         <div className="p-4 border-t border-slate-900 bg-slate-950/50">
           <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/50 border border-slate-900 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md uppercase">
+              {user?.username ? user.username.charAt(0) : 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-200 truncate">{user?.name || 'User Account'}</p>
+              <p className="text-sm font-semibold text-slate-200 truncate">
+                {user?.username ? `@${user.username}` : 'User Account'}
+              </p>
               <p className="text-[10px] font-extrabold uppercase tracking-wider text-violet-400">
                 {user?.role || 'Collector'}
               </p>

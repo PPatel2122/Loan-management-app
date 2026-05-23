@@ -1,4 +1,4 @@
-npmimport React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { Plus, Trash2, Users, Search, X, Check } from 'lucide-react';
 
@@ -127,55 +127,103 @@ const Groups = () => {
       {loading ? (
         <div className="text-center py-10 text-slate-500 font-medium">Loading groups...</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-          <table className="w-full text-left whitespace-nowrap">
-            <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-medium">
-              <tr>
-                <th className="px-6 py-4">Group Name</th>
-                <th className="px-6 py-4">Members</th>
-                <th className="px-6 py-4">Member Count</th>
-                <th className="px-6 py-4">Actions</th>
+      {/* Desktop view (table) */}
+      <div className="hidden md:block bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
+        <table className="w-full text-left whitespace-nowrap">
+          <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-medium">
+            <tr>
+              <th className="px-6 py-4">Group Name</th>
+              <th className="px-6 py-4">Members</th>
+              <th className="px-6 py-4">Member Count</th>
+              <th className="px-6 py-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {groups.map((group) => (
+              <tr key={group._id} className="hover:bg-slate-50">
+                <td className="px-6 py-4 font-semibold text-slate-800 flex items-center gap-2">
+                  <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
+                    <Users size={16} />
+                  </span>
+                  {group.name}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex flex-wrap gap-1.5 max-w-lg">
+                    {group.members?.map((member) => (
+                      <span key={member._id} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
+                        {member.name}
+                      </span>
+                    ))}
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-slate-600 font-medium">{group.members?.length || 0} Members</td>
+                <td className="px-6 py-4">
+                  <button 
+                    onClick={() => handleDeleteGroup(group._id, group.name)}
+                    className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-semibold transition cursor-pointer"
+                  >
+                    <Trash2 size={16} /> Delete
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {groups.map((group) => (
-                <tr key={group._id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4 font-semibold text-slate-800 flex items-center gap-2">
-                    <span className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
-                      <Users size={16} />
+            ))}
+            {groups.length === 0 && (
+              <tr>
+                <td colSpan="4" className="px-6 py-8 text-center text-slate-500 font-medium">
+                  No groups found. Create one to disburse group loans!
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile view (cards) */}
+      <div className="block md:hidden space-y-4">
+        {groups.map((group) => (
+          <div key={group._id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-xs space-y-3.5">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 bg-violet-50 text-violet-700 rounded-lg">
+                  <Users size={16} />
+                </span>
+                <span className="font-extrabold text-slate-800 text-sm">{group.name}</span>
+              </div>
+              
+              <span className="text-[10px] bg-slate-100 text-slate-650 px-2 py-0.5 border border-slate-200 rounded-md font-bold">
+                {group.members?.length || 0} Members
+              </span>
+            </div>
+
+            {group.members && group.members.length > 0 && (
+              <div className="pt-2 border-t border-slate-50">
+                <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block mb-1">Roster Members</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {group.members.map((member) => (
+                    <span key={member._id} className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-50 text-slate-650 border border-slate-150">
+                      {member.name}
                     </span>
-                    {group.name}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-1.5 max-w-lg">
-                      {group.members?.map((member) => (
-                        <span key={member._id} className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-700">
-                          {member.name}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 font-medium">{group.members?.length || 0} Members</td>
-                  <td className="px-6 py-4">
-                    <button 
-                      onClick={() => handleDeleteGroup(group._id, group.name)}
-                      className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-semibold transition"
-                    >
-                      <Trash2 size={16} /> Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {groups.length === 0 && (
-                <tr>
-                  <td colSpan="4" className="px-6 py-8 text-center text-slate-500 font-medium">
-                    No groups found. Create one to disburse group loans!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-3 border-t border-slate-50">
+              <button 
+                onClick={() => handleDeleteGroup(group._id, group.name)}
+                className="text-rose-500 hover:bg-rose-50 px-3 py-1.5 rounded-xl border border-transparent hover:border-rose-100 text-xs font-bold transition flex items-center gap-1 cursor-pointer uppercase tracking-wider"
+              >
+                <Trash2 size={14} /> Delete Group
+              </button>
+            </div>
+          </div>
+        ))}
+        {groups.length === 0 && (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-medium italic border border-slate-100">
+            No groups found. Create one to disburse group loans!
+          </div>
+        )}
+      </div>
       )}
 
       {/* Create Group Modal */}

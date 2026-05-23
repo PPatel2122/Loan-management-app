@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Plus, Search, UserCog, Trash2, Layers, X, Mail, Phone, ShieldAlert, Award } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
+import api from '../api/axios';
 
 const Admins = () => {
   const { user } = useContext(AuthContext);
@@ -43,25 +44,13 @@ const Admins = () => {
   const fetchAdminsAndGroups = async () => {
     try {
       setLoading(true);
-      const resStaff = await fetch('http://localhost:5000/api/auth', {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      if (!resStaff.ok) throw new Error('Failed to fetch staff accounts');
-      const dataStaff = await resStaff.json();
-      setAdmins(dataStaff);
+      const resStaff = await api.get('/auth');
+      setAdmins(resStaff.data);
 
-      const resGroups = await fetch('http://localhost:5000/api/groups', {
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      if (!resGroups.ok) throw new Error('Failed to fetch groups');
-      const dataGroups = await resGroups.json();
-      setGroups(dataGroups);
+      const resGroups = await api.get('/groups');
+      setGroups(resGroups.data);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setLoading(false);
     }
@@ -78,23 +67,12 @@ const Admins = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add staff member');
-      }
+      await api.post('/auth/register', formData);
       setShowModal(false);
       setFormData({ name: '', email: '', phone: '', username: '', password: '', role: 'Admin' });
       fetchAdminsAndGroups();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     }
   };
 
@@ -102,19 +80,10 @@ const Admins = () => {
     if (!window.confirm('Are you sure you want to remove this staff member?')) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${id}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to remove staff member');
-      }
+      await api.delete(`/auth/${id}`);
       fetchAdminsAndGroups();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     }
   };
 
@@ -143,28 +112,16 @@ const Admins = () => {
     if (!selectedEmployee) return;
     setSavingAssign(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/assign-groups', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({
-          employeeId: selectedEmployee._id,
-          groupIds: assignedGroupIds,
-        }),
+      await api.put('/auth/assign-groups', {
+        employeeId: selectedEmployee._id,
+        groupIds: assignedGroupIds,
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update assignments');
-      }
 
       setShowAssignModal(false);
       alert('Group assignments updated successfully!');
       fetchAdminsAndGroups();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     } finally {
       setSavingAssign(false);
     }
@@ -189,25 +146,13 @@ const Admins = () => {
 
     setSavingRole(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/auth/${selectedStaffForRole._id}/role`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-        body: JSON.stringify({ role: newRole }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update user role');
-      }
+      await api.put(`/auth/${selectedStaffForRole._id}/role`, { role: newRole });
 
       setShowRoleModal(false);
       alert('User role updated successfully!');
       fetchAdminsAndGroups();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.message || err.message);
     } finally {
       setSavingRole(false);
     }

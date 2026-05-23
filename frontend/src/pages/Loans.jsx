@@ -107,8 +107,8 @@ const Loans = () => {
         )}
       </div>
 
-      {/* Main Table Wrapper */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+      {/* Desktop view (table) */}
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
@@ -188,6 +188,88 @@ const Loans = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile view (cards) */}
+      <div className="block md:hidden space-y-4">
+        {loans.map((loan) => {
+          const groupName = loan.groupId?.name || 'Unknown Group';
+          return (
+            <div key={loan._id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-xs space-y-3.5">
+              <div className="flex justify-between items-center">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold bg-violet-50 text-violet-700 border border-violet-100 uppercase tracking-wide">
+                  <Users size={12} className="text-violet-500" /> {groupName}
+                </span>
+                
+                <div>
+                  {loan.status === 'Active' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wide">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" /> Active
+                    </span>
+                  )}
+                  {loan.status === 'Completed' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wide">
+                      Completed
+                    </span>
+                  )}
+                  {loan.status === 'Defaulted' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wide">
+                      Defaulted
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-50">
+                <div>
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Amount Issued</span>
+                  <span className="font-black text-slate-800 text-sm">₹{loan.amount.toLocaleString('en-IN')}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Installment (Kist)</span>
+                  <span className="font-extrabold text-slate-750 text-xs">
+                    ₹{loan.emiAmount.toLocaleString('en-IN')}
+                    <span className="text-[8px] text-slate-400 font-bold block">
+                      {loan.paymentFrequency === 'Weekly' ? 'Weekly Kist' : 'Monthly EMI'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-3 border-t border-slate-50">
+                <div>
+                  <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">Loan Tenure</span>
+                  <span className="text-slate-600 font-bold text-xs">
+                    {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'weeks' : 'months'}
+                  </span>
+                </div>
+                
+                <div className="flex gap-2">
+                  {user?.role === 'Admin' && (
+                    <button 
+                      onClick={() => handleDeleteLoan(loan._id, groupName)}
+                      className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition border border-slate-100 hover:border-rose-100 cursor-pointer"
+                      title="Delete Loan"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
+                  <Link 
+                    to={`/loans/${loan._id}`} 
+                    className="text-violet-750 bg-violet-50 hover:bg-violet-100 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
+                  >
+                    <Eye size={14} /> View Ledger
+                  </Link>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        {loans.length === 0 && (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-medium italic border border-slate-100">
+            No active group loans found.
+          </div>
+        )}
       </div>
 
       {/* Redesigned Beautiful Create Loan Modal */}

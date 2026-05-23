@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, NavLink } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from './Sidebar';
-import { Menu, ShieldAlert, Award } from 'lucide-react';
+import { Menu, ShieldAlert, Award, LayoutDashboard, Users, CreditCard } from 'lucide-react';
 
 const Layout = () => {
   const { user } = useContext(AuthContext);
@@ -58,11 +58,58 @@ const Layout = () => {
         </header>
         
         {/* Main Content Container with elegant padding and max viewport width protection */}
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-[100vw] bg-gradient-to-b from-slate-50 to-slate-100/50">
+        <main className="flex-1 p-4 pb-24 md:p-8 overflow-y-auto w-full max-w-[100vw] bg-gradient-to-b from-slate-50 to-slate-100/50">
           <div className="max-w-7xl mx-auto animate-slide-up">
             <Outlet />
           </div>
         </main>
+      </div>
+
+      {/* Bottom Navigation for Mobile Devices */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-lg border-t border-slate-100 h-16 flex items-center justify-around px-2 shadow-lg shadow-slate-950/5">
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center flex-1 h-full py-1 transition-all ${
+              isActive ? 'text-violet-600 scale-105' : 'text-slate-450 hover:text-slate-600'
+            }`
+          }
+        >
+          <LayoutDashboard size={20} />
+          <span className="text-[10px] font-bold mt-1">Home</span>
+        </NavLink>
+
+        <NavLink
+          to="/customers"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center flex-1 h-full py-1 transition-all ${
+              isActive ? 'text-violet-600 scale-105' : 'text-slate-450 hover:text-slate-600'
+            }`
+          }
+        >
+          <Users size={20} />
+          <span className="text-[10px] font-bold mt-1">Customers</span>
+        </NavLink>
+
+        <NavLink
+          to="/loans"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center flex-1 h-full py-1 transition-all ${
+              isActive ? 'text-violet-600 scale-105' : 'text-slate-450 hover:text-slate-600'
+            }`
+          }
+        >
+          <CreditCard size={20} />
+          <span className="text-[10px] font-bold mt-1">Loans</span>
+        </NavLink>
+
+        <button
+          onClick={() => setIsSidebarOpen(true)}
+          className="flex flex-col items-center justify-center flex-1 h-full py-1 text-slate-450 active:scale-95 transition-all cursor-pointer bg-transparent border-0"
+        >
+          <Menu size={20} />
+          <span className="text-[10px] font-bold mt-1">More</span>
+        </button>
       </div>
     </div>
   );
