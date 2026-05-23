@@ -6,8 +6,20 @@ const Installment = require('../models/Installment');
 // @access  Private
 const getDashboardStats = async (req, res) => {
   try {
-    const loans = await Loan.find({});
-    const installments = await Installment.find({});
+    let loanFilter = {};
+    let installmentFilter = {};
+
+    if (req.user && req.user.role !== 'Admin') {
+      const Group = require('../models/Group');
+      const assignedGroupIds = await Group.find({ collector: req.user._id }).distinct('_id');
+      loanFilter = { groupId: { $in: assignedGroupIds } };
+      
+      const loanIds = await Loan.find(loanFilter).distinct('_id');
+      installmentFilter = { loanId: { $in: loanIds } };
+    }
+
+    const loans = await Loan.find(loanFilter);
+    const installments = await Installment.find(installmentFilter);
 
     const totalLoansCount = loans.length;
     const totalMoneyGiven = loans.reduce((acc, loan) => acc + loan.amount, 0);

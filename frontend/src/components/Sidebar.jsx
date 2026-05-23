@@ -1,18 +1,21 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, LogOut, X, UserCog, CheckSquare } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, X, UserCog, CheckSquare, Layers } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
 
   const navItems = [
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
-    { name: 'Customers', path: '/customers', icon: <Users size={20} /> },
+    { name: 'Groups & Customers', path: '/customers', icon: <Users size={20} /> },
     { name: 'Loans', path: '/loans', icon: <CreditCard size={20} /> },
     { name: 'Completed Loans', path: '/completed-loans', icon: <CheckSquare size={20} /> },
-    { name: 'Admins', path: '/admins', icon: <UserCog size={20} /> },
+    ...(user?.role === 'Admin' ? [
+      { name: 'Staff Management', path: '/admins', icon: <UserCog size={20} /> },
+      { name: 'Collector Assignments', path: '/assignments', icon: <Layers size={20} /> }
+    ] : []),
   ];
 
   return (

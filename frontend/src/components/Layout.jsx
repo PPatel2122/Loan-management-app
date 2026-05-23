@@ -24,7 +24,9 @@ const Layout = () => {
           >
             <Menu size={24} />
           </button>
-          <h2 className="text-xl font-semibold text-slate-800">Admin Portal</h2>
+          <h2 className="text-xl font-semibold text-slate-800">
+            {user?.role === 'Admin' ? 'Admin Portal' : 'Employee Portal'}
+          </h2>
         </header>
         <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-[100vw]">
           <Outlet />

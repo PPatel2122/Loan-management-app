@@ -23,16 +23,23 @@ cron.schedule('0 0 * * *', async () => {
       }
     }).populate({
       path: 'loanId',
-      populate: { path: 'customerId' }
+      populate: {
+        path: 'groupId',
+        populate: { path: 'members' }
+      }
     });
 
     for (const inst of upcomingInstallments) {
-      const customer = inst.loanId.customerId;
-      if (customer && customer.phone) {
-        await sendSMS(
-          customer.phone,
-          `Reminder: Your EMI of ${inst.remainingAmount} is due on ${inst.dueDate.toDateString()}. Please pay to avoid penalties.`
-        );
+      const group = inst.loanId?.groupId;
+      if (group && group.members && group.members.length > 0) {
+        for (const member of group.members) {
+          if (member.phone) {
+            await sendSMS(
+              member.phone,
+              `Reminder: Your group (${group.name}) EMI of ${inst.remainingAmount} is due on ${inst.dueDate.toDateString()}. Under joint liability, all members must ensure payment.`
+            );
+          }
+        }
       }
     }
 
@@ -42,7 +49,10 @@ cron.schedule('0 0 * * *', async () => {
       dueDate: { $lt: today }
     }).populate({
       path: 'loanId',
-      populate: { path: 'customerId' }
+      populate: {
+        path: 'groupId',
+        populate: { path: 'members' }
+      }
     });
 
     for (const inst of overdueInstallments) {
@@ -53,12 +63,16 @@ cron.schedule('0 0 * * *', async () => {
         inst.penalty = 100; // Flat penalty amount
         inst.remainingAmount += 100;
         
-        const customer = inst.loanId.customerId;
-        if (customer && customer.phone) {
-          await sendSMS(
-            customer.phone,
-            `Alert: Your EMI is overdue. A penalty of 100 has been added. Total due: ${inst.remainingAmount}.`
-          );
+        const group = inst.loanId?.groupId;
+        if (group && group.members && group.members.length > 0) {
+          for (const member of group.members) {
+            if (member.phone) {
+              await sendSMS(
+                member.phone,
+                `Alert: The EMI for group (${group.name}) is overdue. A penalty of 100 has been added. Total due: ${inst.remainingAmount}. Joint liability applies.`
+              );
+            }
+          }
         }
       }
       await inst.save();

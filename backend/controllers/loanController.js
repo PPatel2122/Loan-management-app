@@ -1,12 +1,14 @@
 const Loan = require('../models/Loan');
 const Installment = require('../models/Installment');
 const Customer = require('../models/Customer');
+const Group = require('../models/Group');
 
 // EMI Calculation (Reducing Balance)
-const calculateEMI = (principal, annualRate, months) => {
-  if (annualRate === 0) return principal / months;
-  const r = annualRate / 12 / 100;
-  const emi = (principal * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+const calculateEMI = (principal, annualRate, duration, frequency = 'Monthly') => {
+  if (annualRate === 0) return principal / duration;
+  const periodsPerYear = frequency === 'Weekly' ? 52 : 12;
+  const r = annualRate / periodsPerYear / 100;
+  const emi = (principal * r * Math.pow(1 + r, duration)) / (Math.pow(1 + r, duration) - 1);
   return emi;
 };
 
@@ -14,34 +16,46 @@ const calculateEMI = (principal, annualRate, months) => {
 // @route   POST /api/loans
 // @access  Private
 const createLoan = async (req, res) => {
-  const { customerId, amount, interestRate, duration, startDate } = req.body;
+  const { groupId, amount, interestRate, duration, startDate, paymentFrequency } = req.body;
   try {
-    const customer = await Customer.findById(customerId);
-    if (!customer || !customer.isVerified) {
-      return res.status(400).json({ message: 'Verified customer required' });
+    if (!groupId) {
+      return res.status(400).json({ message: 'Group is required' });
     }
 
-    const emiAmount = calculateEMI(amount, interestRate, duration);
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return res.status(400).json({ message: 'Group not found' });
+    }
+
+    const freq = paymentFrequency || 'Monthly';
+    const emiAmount = calculateEMI(amount, interestRate, duration, freq);
     const totalAmount = emiAmount * duration;
     
     const sDate = startDate ? new Date(startDate) : new Date();
 
-    const loan = await Loan.create({
-      customerId,
+    const loanData = {
+      groupId,
       amount,
       interestRate,
       duration,
+      paymentFrequency: freq,
       emiAmount: Math.round(emiAmount * 100) / 100,
       totalAmount: Math.round(totalAmount * 100) / 100,
       startDate: sDate,
       status: 'Active'
-    });
+    };
+
+    const loan = await Loan.create(loanData);
 
     // Generate Installments
     const installmentsToInsert = [];
     for (let i = 1; i <= duration; i++) {
       const dueDate = new Date(sDate);
-      dueDate.setMonth(dueDate.getMonth() + i);
+      if (freq === 'Weekly') {
+        dueDate.setDate(dueDate.getDate() + i * 7);
+      } else {
+        dueDate.setMonth(dueDate.getMonth() + i);
+      }
 
       installmentsToInsert.push({
         loanId: loan._id,
@@ -61,9 +75,6 @@ const createLoan = async (req, res) => {
   }
 };
 
-// @desc    Get all loans
-// @route   GET /api/loans
-// @access  Private
 const getLoans = async (req, res) => {
   try {
     const { status, excludeStatus } = req.query;
@@ -71,7 +82,15 @@ const getLoans = async (req, res) => {
     if (status) filter.status = status;
     if (excludeStatus) filter.status = { $ne: excludeStatus };
 
-    const loans = await Loan.find(filter).populate('customerId', 'name phone').sort({ createdAt: -1 });
+    if (req.user && req.user.role !== 'Admin') {
+      const Group = require('../models/Group');
+      const assignedGroupIds = await Group.find({ collector: req.user._id }).distinct('_id');
+      filter.groupId = { $in: assignedGroupIds };
+    }
+
+    const loans = await Loan.find(filter)
+      .populate('groupId', 'name')
+      .sort({ createdAt: -1 });
     res.json(loans);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -83,7 +102,14 @@ const getLoans = async (req, res) => {
 // @access  Private
 const getLoanById = async (req, res) => {
   try {
-    const loan = await Loan.findById(req.params.id).populate('customerId', 'name phone address');
+    const loan = await Loan.findById(req.params.id)
+      .populate({
+        path: 'groupId',
+        populate: {
+          path: 'members',
+          select: 'name phone address'
+        }
+      });
     if (!loan) return res.status(404).json({ message: 'Loan not found' });
     
     const installments = await Installment.find({ loanId: loan._id }).sort({ dueDate: 1 });
@@ -94,4 +120,24 @@ const getLoanById = async (req, res) => {
   }
 };
 
-module.exports = { createLoan, getLoans, getLoanById };
+// @desc    Delete a loan and its installments
+// @route   DELETE /api/loans/:id
+// @access  Private
+const deleteLoan = async (req, res) => {
+  try {
+    const loan = await Loan.findById(req.params.id);
+    if (!loan) return res.status(404).json({ message: 'Loan not found' });
+
+    // Delete associated installments
+    await Installment.deleteMany({ loanId: loan._id });
+
+    // Delete the loan
+    await loan.deleteOne();
+
+    res.json({ message: 'Loan and its installments removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createLoan, getLoans, getLoanById, deleteLoan };

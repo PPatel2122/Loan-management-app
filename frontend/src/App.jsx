@@ -10,6 +10,7 @@ import LoanDetails from './pages/LoanDetails';
 import CompletedLoans from './pages/CompletedLoans';
 
 import Admins from './pages/Admins';
+import Assignments from './pages/Assignments';
 
 function App() {
   return (
@@ -20,10 +21,12 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
             <Route path="customers" element={<Customers />} />
+            <Route path="groups" element={<Customers />} />
             <Route path="loans" element={<Loans />} />
             <Route path="loans/:id" element={<LoanDetails />} />
             <Route path="completed-loans" element={<CompletedLoans />} />
             <Route path="admins" element={<Admins />} />
+            <Route path="assignments" element={<Assignments />} />
           </Route>
         </Routes>
       </Router>

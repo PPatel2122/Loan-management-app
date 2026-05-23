@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { ArrowLeft, CheckCircle, AlertTriangle, Edit2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users } from 'lucide-react';
 
 const LoanDetails = () => {
   const { id } = useParams();
@@ -48,39 +48,79 @@ const LoanDetails = () => {
     }
   };
 
-  if (loading) return <div>Loading details...</div>;
-  if (!loan) return <div>Loan not found.</div>;
+  if (loading) return <div className="text-center py-10 text-slate-500 font-medium">Loading details...</div>;
+  if (!loan) return <div className="text-center py-10 text-slate-500 font-medium">Loan not found.</div>;
+
+  const group = loan.groupId || {};
 
   return (
     <div>
       <div className="mb-6 flex items-center gap-4">
-        <Link to="/loans" className="text-slate-500 hover:text-blue-600 bg-slate-200 p-2 rounded-full">
+        <Link to="/loans" className="text-slate-500 hover:text-blue-600 bg-slate-200 p-2 rounded-full transition">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold text-slate-800">Loan Details</h1>
+        <h1 className="text-2xl font-bold text-slate-800 font-sans">Loan Details</h1>
       </div>
 
       {/* Loan Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">Customer</p>
-          <p className="font-semibold text-lg">{loan.customerId.name}</p>
-          <p className="text-slate-600 text-sm">{loan.customerId.phone}</p>
+          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Group Recipient</p>
+          <p className="font-bold text-lg flex items-center gap-1.5 text-blue-600">
+            <Users size={18} /> {group.name || 'Unknown Group'}
+          </p>
+          <p className="text-slate-500 text-sm mt-1">{group.members?.length || 0} Members Jointly Liable</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">Principal Amount</p>
-          <p className="font-semibold text-lg">₹{loan.amount}</p>
-          <p className="text-slate-600 text-sm">{loan.interestRate}% Interest</p>
+          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Principal Amount</p>
+          <p className="font-bold text-lg text-slate-800">₹{loan.amount.toLocaleString()}</p>
+          <p className="text-slate-500 text-sm mt-1 font-semibold">{loan.interestRate}% Interest Rate</p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">EMI Schedule</p>
-          <p className="font-semibold text-lg">₹{loan.emiAmount} / mo</p>
-          <p className="text-slate-600 text-sm">For {loan.duration} months</p>
+          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">
+            {loan.paymentFrequency === 'Weekly' ? 'Weekly Installment' : 'EMI Schedule'}
+          </p>
+          <p className="font-bold text-lg text-slate-800">
+            ₹{loan.emiAmount.toLocaleString()} / {loan.paymentFrequency === 'Weekly' ? 'wk' : 'mo'}
+          </p>
+          <p className="text-slate-500 text-sm mt-1 font-semibold">
+            For {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'Weeks' : 'Months'}
+          </p>
         </div>
         <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-sm text-slate-500 mb-1">Total Payable</p>
-          <p className="font-semibold text-lg text-indigo-600">₹{loan.totalAmount}</p>
-          <p className="text-slate-600 text-sm font-medium">Status: {loan.status}</p>
+          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Total Payable</p>
+          <p className="font-bold text-lg text-indigo-600">₹{loan.totalAmount.toLocaleString()}</p>
+          <p className="text-slate-500 text-sm mt-1 font-semibold flex items-center gap-1">
+            Status: 
+            <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-bold ${
+              loan.status === 'Active' ? 'bg-blue-50 text-blue-700' :
+              loan.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+            }`}>
+              {loan.status}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      {/* Group Members Roster Panel */}
+      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm mb-8 animate-fade-in">
+        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <Users size={20} className="text-blue-600" /> Group Members & Joint Liabilities
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {group.members?.map((member) => (
+            <div key={member._id} className="p-4 border border-slate-100 bg-slate-50/70 rounded-lg">
+              <p className="font-semibold text-slate-800">{member.name}</p>
+              <p className="text-slate-500 text-sm mt-1">📞 {member.phone}</p>
+              <p className="text-slate-400 text-xs mt-1.5 flex items-start gap-1">
+                <span>📍</span>
+                <span>{member.address}</span>
+              </p>
+            </div>
+          ))}
+          {(!group.members || group.members.length === 0) && (
+            <p className="text-slate-400 text-sm font-medium">No member profiles loaded for this group.</p>
+          )}
         </div>
       </div>
 
@@ -103,14 +143,14 @@ const LoanDetails = () => {
             {installments.map((inst, idx) => (
               <tr key={inst._id} className={inst.status === 'Paid' ? 'bg-emerald-50/30' : (inst.status === 'Overdue' ? 'bg-red-50/50' : 'hover:bg-slate-50')}>
                 <td className="px-6 py-4 text-slate-500">{idx + 1}</td>
-                <td className="px-6 py-4 text-slate-800 font-medium">{new Date(inst.dueDate).toLocaleDateString()}</td>
-                <td className="px-6 py-4 text-slate-600">₹{inst.amount}</td>
-                <td className="px-6 py-4 font-semibold text-slate-800">₹{inst.remainingAmount}</td>
-                <td className="px-6 py-4 text-red-600">{inst.penalty > 0 ? `+₹${inst.penalty}` : '-'}</td>
+                <td className="px-6 py-4 text-slate-800 font-semibold">{new Date(inst.dueDate).toLocaleDateString()}</td>
+                <td className="px-6 py-4 text-slate-600">₹{inst.amount.toLocaleString()}</td>
+                <td className="px-6 py-4 font-bold text-slate-800">₹{inst.remainingAmount.toLocaleString()}</td>
+                <td className="px-6 py-4 text-red-600 font-medium">{inst.penalty > 0 ? `+₹${inst.penalty}` : '-'}</td>
                 <td className="px-6 py-4">
-                  {inst.status === 'Pending' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-medium bg-amber-100 text-amber-800">Pending</span>}
-                  {inst.status === 'Paid' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-medium bg-emerald-100 text-emerald-800">Paid</span>}
-                  {inst.status === 'Overdue' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 flex items-center gap-1"><AlertTriangle size={12}/> Overdue</span>}
+                  {inst.status === 'Pending' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>}
+                  {inst.status === 'Paid' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">Paid</span>}
+                  {inst.status === 'Overdue' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-red-100 text-red-800 flex items-center gap-1"><AlertTriangle size={12}/> Overdue</span>}
                 </td>
                 <td className="px-6 py-4 flex gap-2">
                   {inst.status !== 'Paid' && (
@@ -134,7 +174,7 @@ const LoanDetails = () => {
                       </button>
                     </>
                   )}
-                  {inst.status === 'Paid' && <span className="text-emerald-600 text-sm font-medium">✓ Done</span>}
+                  {inst.status === 'Paid' && <span className="text-emerald-600 text-sm font-semibold">✓ Settled</span>}
                 </td>
               </tr>
             ))}
@@ -144,29 +184,29 @@ const LoanDetails = () => {
 
       {/* Edit Modal */}
       {editingInst && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-bold mb-4">Edit Installment</h2>
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 animate-fade-in">
+            <h2 className="text-lg font-bold mb-4 text-slate-800">Edit Installment</h2>
             <form onSubmit={handleEditSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm mb-1 text-slate-600">Remaining Amount (₹)</label>
-                <input type="number" required className="w-full border rounded p-2" value={editFormData.remainingAmount} onChange={e => setEditFormData({...editFormData, remainingAmount: e.target.value})} />
+                <label className="block text-sm mb-1 text-slate-600 font-medium">Remaining Amount (₹)</label>
+                <input type="number" required className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition" value={editFormData.remainingAmount} onChange={e => setEditFormData({...editFormData, remainingAmount: e.target.value})} />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-slate-600">Penalty (₹)</label>
-                <input type="number" required className="w-full border rounded p-2" value={editFormData.penalty} onChange={e => setEditFormData({...editFormData, penalty: e.target.value})} />
+                <label className="block text-sm mb-1 text-slate-600 font-medium">Penalty (₹)</label>
+                <input type="number" required className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition" value={editFormData.penalty} onChange={e => setEditFormData({...editFormData, penalty: e.target.value})} />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-slate-600">Status</label>
-                <select className="w-full border rounded p-2" value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})}>
+                <label className="block text-sm mb-1 text-slate-600 font-medium">Status</label>
+                <select className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition bg-white" value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})}>
                   <option value="Pending">Pending</option>
                   <option value="Overdue">Overdue</option>
                   <option value="Paid">Paid</option>
                 </select>
               </div>
               <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setEditingInst(null)} className="flex-1 bg-slate-100 text-slate-700 py-2 rounded">Cancel</button>
-                <button type="submit" className="flex-1 bg-blue-600 text-white py-2 rounded">Save</button>
+                <button type="button" onClick={() => setEditingInst(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded font-semibold transition">Cancel</button>
+                <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded font-semibold transition">Save</button>
               </div>
             </form>
           </div>

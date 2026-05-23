@@ -15,6 +15,7 @@ app.use(express.json());
 // Load Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/customers', require('./routes/customerRoutes'));
+app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/installments', require('./routes/installmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));

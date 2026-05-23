@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Group = require('../models/Group');
 const jwt = require('jsonwebtoken');
 
 const generateToken = (id) => {
@@ -67,6 +68,8 @@ const deleteUser = async (req, res) => {
     if (user._id.toString() === req.user._id.toString()) {
       return res.status(400).json({ message: 'You cannot delete yourself' });
     }
+    // Clear collector status on any groups assigned to this deleted user
+    await Group.updateMany({ collector: user._id }, { $set: { collector: null } });
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User removed' });
   } catch (error) {
@@ -74,4 +77,53 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, getUsers, deleteUser };
+const assignGroupsToEmployee = async (req, res) => {
+  const { employeeId, groupIds } = req.body;
+  try {
+    if (!employeeId) {
+      return res.status(400).json({ message: 'Employee ID is required' });
+    }
+    if (!Array.isArray(groupIds)) {
+      return res.status(400).json({ message: 'Group IDs must be an array' });
+    }
+
+    // 1. Unassign all groups currently assigned to this employee
+    await Group.updateMany({ collector: employeeId }, { $set: { collector: null } });
+
+    // 2. Assign the selected groups to this employee
+    if (groupIds.length > 0) {
+      await Group.updateMany({ _id: { $in: groupIds } }, { $set: { collector: employeeId } });
+    }
+
+    res.json({ message: 'Groups assigned successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateUserRole = async (req, res) => {
+  const { role } = req.body;
+  try {
+    if (!role || !['Admin', 'Employee'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role. Must be Admin or Employee' });
+    }
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.role = role;
+    
+    // Clear assigned groups if the role changes to Admin
+    if (role === 'Admin') {
+      await Group.updateMany({ collector: user._id }, { $set: { collector: null } });
+    }
+
+    await user.save();
+    res.json({ message: 'User role updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { loginUser, registerUser, getUsers, deleteUser, assignGroupsToEmployee, updateUserRole };
