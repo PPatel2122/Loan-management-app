@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users, IndianRupee, Landmark, History, Coins, X } from 'lucide-react';
 
 const LoanDetails = () => {
   const { id } = useParams();
@@ -48,165 +48,273 @@ const LoanDetails = () => {
     }
   };
 
-  if (loading) return <div className="text-center py-10 text-slate-500 font-medium">Loading details...</div>;
-  if (!loan) return <div className="text-center py-10 text-slate-500 font-medium">Loan not found.</div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <div className="w-10 h-10 border-4 border-slate-200 border-t-violet-600 rounded-full animate-spin" />
+        <p className="text-slate-500 font-semibold text-sm animate-pulse">Syncing loan details ledger...</p>
+      </div>
+    );
+  }
+
+  if (!loan) {
+    return (
+      <div className="text-center py-16 bg-white rounded-3xl border border-red-100 p-8 max-w-lg mx-auto">
+        <p className="text-red-650 font-bold text-base mb-2">Not Found</p>
+        <p className="text-slate-500 text-sm">The requested loan ledger record does not exist or has been deleted.</p>
+      </div>
+    );
+  }
 
   const group = loan.groupId || {};
 
   return (
-    <div>
-      <div className="mb-6 flex items-center gap-4">
-        <Link to="/loans" className="text-slate-500 hover:text-blue-600 bg-slate-200 p-2 rounded-full transition">
-          <ArrowLeft size={20} />
+    <div className="space-y-6">
+      {/* Header and Back Link */}
+      <div className="mb-6 flex items-center gap-4 text-left">
+        <Link 
+          to="/loans" 
+          className="text-slate-600 hover:text-violet-600 hover:bg-slate-200/60 bg-slate-100 p-2.5 rounded-xl transition cursor-pointer"
+          title="Back to Active Loans"
+        >
+          <ArrowLeft size={18} />
         </Link>
-        <h1 className="text-2xl font-bold text-slate-800 font-sans">Loan Details</h1>
+        <div className="flex flex-col">
+          <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Account Statements</span>
+          <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Loan Details & Ledger</h1>
+        </div>
       </div>
 
-      {/* Loan Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Group Recipient</p>
-          <p className="font-bold text-lg flex items-center gap-1.5 text-blue-600">
-            <Users size={18} /> {group.name || 'Unknown Group'}
+      {/* Loan Info Cards (Redesigned with elegant statistical banners) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Card 1: Recipient Group */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:shadow-md transition">
+          <div>
+            <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-widest block mb-1">Group Recipient</span>
+            <p className="font-black text-base flex items-center gap-1.5 text-violet-600 truncate">
+              <Users size={16} /> {group.name || 'Unknown Group'}
+            </p>
+          </div>
+          <p className="text-slate-500 text-xs mt-3 font-semibold">
+            {group.members?.length || 0} Members Jointly Liable
           </p>
-          <p className="text-slate-500 text-sm mt-1">{group.members?.length || 0} Members Jointly Liable</p>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Principal Amount</p>
-          <p className="font-bold text-lg text-slate-800">₹{loan.amount.toLocaleString()}</p>
-          <p className="text-slate-500 text-sm mt-1 font-semibold">{loan.interestRate}% Interest Rate</p>
+
+        {/* Card 2: Principal */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:shadow-md transition">
+          <div>
+            <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-widest block mb-1">Principal Amount</span>
+            <p className="font-black text-lg text-slate-850">₹{loan.amount.toLocaleString('en-IN')}</p>
+          </div>
+          <p className="text-emerald-600 text-xs mt-3 font-extrabold uppercase tracking-wider bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 w-fit">
+            {loan.interestRate}% Interest rate
+          </p>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">
-            {loan.paymentFrequency === 'Weekly' ? 'Weekly Installment' : 'EMI Schedule'}
-          </p>
-          <p className="font-bold text-lg text-slate-800">
-            ₹{loan.emiAmount.toLocaleString()} / {loan.paymentFrequency === 'Weekly' ? 'wk' : 'mo'}
-          </p>
-          <p className="text-slate-500 text-sm mt-1 font-semibold">
+
+        {/* Card 3: EMI */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:shadow-md transition">
+          <div>
+            <span className="text-[9px] text-slate-455 font-extrabold uppercase tracking-widest block mb-1">
+              {loan.paymentFrequency === 'Weekly' ? 'Weekly Kist Installment' : 'Monthly EMI Schedule'}
+            </span>
+            <p className="font-black text-lg text-slate-850">
+              ₹{loan.emiAmount.toLocaleString('en-IN')} <span className="text-xs text-slate-400 font-bold">/ {loan.paymentFrequency === 'Weekly' ? 'wk' : 'mo'}</span>
+            </p>
+          </div>
+          <p className="text-slate-500 text-xs mt-3 font-semibold">
             For {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'Weeks' : 'Months'}
           </p>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
-          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">Total Payable</p>
-          <p className="font-bold text-lg text-indigo-600">₹{loan.totalAmount.toLocaleString()}</p>
-          <p className="text-slate-500 text-sm mt-1 font-semibold flex items-center gap-1">
-            Status: 
-            <span className={`inline-flex px-1.5 py-0.5 rounded text-xs font-bold ${
-              loan.status === 'Active' ? 'bg-blue-50 text-blue-700' :
-              loan.status === 'Completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+
+        {/* Card 4: Total Payable */}
+        <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between text-left hover:shadow-md transition">
+          <div>
+            <span className="text-[9px] text-slate-450 font-extrabold uppercase tracking-widest block mb-1">Total Outstanding</span>
+            <p className="font-black text-lg text-indigo-600">₹{loan.totalAmount.toLocaleString('en-IN')}</p>
+          </div>
+          <div className="flex items-center gap-1.5 mt-3">
+            <span className="text-xs text-slate-500 font-semibold">Status:</span>
+            <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider ${
+              loan.status === 'Active' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
+              loan.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'
             }`}>
               {loan.status}
             </span>
-          </p>
+          </div>
         </div>
       </div>
 
       {/* Group Members Roster Panel */}
-      <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm mb-8 animate-fade-in">
-        <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-          <Users size={20} className="text-blue-600" /> Group Members & Joint Liabilities
+      <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm text-left">
+        <h3 className="text-base font-extrabold text-slate-850 mb-4 flex items-center gap-2">
+          <Users size={18} className="text-violet-600" /> Group Members & Joint Liabilities
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {group.members?.map((member) => (
-            <div key={member._id} className="p-4 border border-slate-100 bg-slate-50/70 rounded-lg">
-              <p className="font-semibold text-slate-800">{member.name}</p>
-              <p className="text-slate-500 text-sm mt-1">📞 {member.phone}</p>
-              <p className="text-slate-400 text-xs mt-1.5 flex items-start gap-1">
+            <div key={member._id} className="p-4 border border-slate-100 bg-slate-50/50 rounded-2xl flex flex-col justify-between text-left hover:border-slate-200 transition duration-200">
+              <div>
+                <p className="font-extrabold text-slate-850 text-sm">{member.name}</p>
+                <p className="text-slate-550 text-xs mt-1.5 font-semibold">📞 {member.phone}</p>
+              </div>
+              <p className="text-slate-400 text-xs mt-3 flex items-start gap-1 font-medium">
                 <span>📍</span>
-                <span>{member.address}</span>
+                <span className="truncate">{member.address}</span>
               </p>
             </div>
           ))}
           {(!group.members || group.members.length === 0) && (
-            <p className="text-slate-400 text-sm font-medium">No member profiles loaded for this group.</p>
+            <p className="text-slate-400 text-xs font-semibold italic">No member profiles loaded for this group.</p>
           )}
         </div>
       </div>
 
-      <h2 className="text-xl font-bold text-slate-800 mb-4">Installments</h2>
-      
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-medium">
-            <tr>
-              <th className="px-6 py-4">#</th>
-              <th className="px-6 py-4">Due Date</th>
-              <th className="px-6 py-4">EMI Amount</th>
-              <th className="px-6 py-4">Remaining</th>
-              <th className="px-6 py-4">Penalty</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {installments.map((inst, idx) => (
-              <tr key={inst._id} className={inst.status === 'Paid' ? 'bg-emerald-50/30' : (inst.status === 'Overdue' ? 'bg-red-50/50' : 'hover:bg-slate-50')}>
-                <td className="px-6 py-4 text-slate-500">{idx + 1}</td>
-                <td className="px-6 py-4 text-slate-800 font-semibold">{new Date(inst.dueDate).toLocaleDateString()}</td>
-                <td className="px-6 py-4 text-slate-600">₹{inst.amount.toLocaleString()}</td>
-                <td className="px-6 py-4 font-bold text-slate-800">₹{inst.remainingAmount.toLocaleString()}</td>
-                <td className="px-6 py-4 text-red-600 font-medium">{inst.penalty > 0 ? `+₹${inst.penalty}` : '-'}</td>
-                <td className="px-6 py-4">
-                  {inst.status === 'Pending' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-amber-100 text-amber-800">Pending</span>}
-                  {inst.status === 'Paid' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-emerald-100 text-emerald-800">Paid</span>}
-                  {inst.status === 'Overdue' && <span className="inline-flex px-2 py-1 rounded-md text-xs font-semibold bg-red-100 text-red-800 flex items-center gap-1"><AlertTriangle size={12}/> Overdue</span>}
-                </td>
-                <td className="px-6 py-4 flex gap-2">
-                  {inst.status !== 'Paid' && (
-                    <>
-                      <button 
-                        onClick={() => markPaid(inst._id)}
-                        className="text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 p-1.5 rounded transition"
-                        title="Mark as fully paid"
-                      >
-                        <CheckCircle size={18} />
-                      </button>
-                      <button 
-                        onClick={() => {
-                          setEditingInst(inst._id);
-                          setEditFormData({ remainingAmount: inst.remainingAmount, penalty: inst.penalty, status: inst.status });
-                        }}
-                        className="text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 p-1.5 rounded transition"
-                        title="Edit manually"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                    </>
-                  )}
-                  {inst.status === 'Paid' && <span className="text-emerald-600 text-sm font-semibold">✓ Settled</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      {/* Installment Table Ledger */}
+      <div className="space-y-4 text-left">
+        <div className="flex justify-between items-center pb-1">
+          <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+            <History size={18} className="text-violet-600" /> Installment Recovery Schedule
+          </h2>
+        </div>
+        
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
+              <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                <tr>
+                  <th className="px-6 py-4">#</th>
+                  <th className="px-6 py-4">Installment Due Date</th>
+                  <th className="px-6 py-4">Base EMI Amount</th>
+                  <th className="px-6 py-4">Remaining Balance</th>
+                  <th className="px-6 py-4">Overdue Penalty</th>
+                  <th className="px-6 py-4">Recovery Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {installments.map((inst, idx) => {
+                  let rowBg = 'hover:bg-slate-50/50';
+                  if (inst.status === 'Paid') rowBg = 'bg-emerald-50/20 hover:bg-emerald-50/40 text-emerald-800';
+                  if (inst.status === 'Overdue') rowBg = 'bg-rose-50/20 hover:bg-rose-50/40 text-rose-800';
+                  
+                  return (
+                    <tr key={inst._id} className={`${rowBg} transition`}>
+                      <td className="px-6 py-4 text-slate-500 font-bold text-xs">{idx + 1}</td>
+                      <td className="px-6 py-4 font-extrabold text-slate-850 text-xs">{new Date(inst.dueDate).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+                      <td className="px-6 py-4 text-slate-600 font-bold text-xs">₹{inst.amount.toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-4 font-black text-slate-850 text-xs">₹{inst.remainingAmount.toLocaleString('en-IN')}</td>
+                      <td className="px-6 py-4 text-rose-600 font-extrabold text-xs">{inst.penalty > 0 ? `+₹${inst.penalty}` : '—'}</td>
+                      <td className="px-6 py-4">
+                        {inst.status === 'Pending' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100">Pending</span>
+                        )}
+                        {inst.status === 'Paid' && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">Paid</span>
+                        )}
+                        {inst.status === 'Overdue' && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200 animate-pulse">
+                            <AlertTriangle size={10}/> Overdue
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end items-center gap-1.5">
+                          {inst.status !== 'Paid' ? (
+                            <>
+                              <button 
+                                onClick={() => markPaid(inst._id)}
+                                className="text-emerald-700 hover:bg-emerald-50 p-1.5 rounded-lg border border-transparent hover:border-emerald-100 transition cursor-pointer"
+                                title="Mark as fully paid"
+                              >
+                                <CheckCircle size={16} />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  setEditingInst(inst._id);
+                                  setEditFormData({ remainingAmount: inst.remainingAmount, penalty: inst.penalty, status: inst.status });
+                                }}
+                                className="text-blue-650 hover:bg-blue-50 p-1.5 rounded-lg border border-transparent hover:border-blue-100 transition cursor-pointer"
+                                title="Edit manually"
+                              >
+                                <Edit2 size={16} />
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-emerald-600 text-xs font-black uppercase tracking-wider flex items-center gap-0.5 pr-2">✓ Settled</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Edit Installment Modal (Redesigned with beautiful form card layout) */}
       {editingInst && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 animate-fade-in">
-            <h2 className="text-lg font-bold mb-4 text-slate-800">Edit Installment</h2>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm mb-1 text-slate-600 font-medium">Remaining Amount (₹)</label>
-                <input type="number" required className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition" value={editFormData.remainingAmount} onChange={e => setEditFormData({...editFormData, remainingAmount: e.target.value})} />
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-sm font-black text-slate-800 tracking-tight">Manual Installment Override</h2>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Edit this installment's ledger status manually</p>
               </div>
-              <div>
-                <label className="block text-sm mb-1 text-slate-600 font-medium">Penalty (₹)</label>
-                <input type="number" required className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition" value={editFormData.penalty} onChange={e => setEditFormData({...editFormData, penalty: e.target.value})} />
+              <button 
+                onClick={() => setEditingInst(null)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} className="p-5 space-y-4">
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Remaining Amount (₹)</label>
+                <input 
+                  type="number" required 
+                  className="w-full border border-slate-350 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold" 
+                  value={editFormData.remainingAmount} 
+                  onChange={e => setEditFormData({...editFormData, remainingAmount: e.target.value})} 
+                />
               </div>
-              <div>
-                <label className="block text-sm mb-1 text-slate-600 font-medium">Status</label>
-                <select className="w-full border border-slate-300 focus:ring-2 focus:ring-blue-500 rounded p-2.5 outline-none transition bg-white" value={editFormData.status} onChange={e => setEditFormData({...editFormData, status: e.target.value})}>
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Overdue Penalty (₹)</label>
+                <input 
+                  type="number" required 
+                  className="w-full border border-slate-350 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold" 
+                  value={editFormData.penalty} 
+                  onChange={e => setEditFormData({...editFormData, penalty: e.target.value})} 
+                />
+              </div>
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Recovery Status</label>
+                <select 
+                  className="w-full border border-slate-355 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold bg-white" 
+                  value={editFormData.status} 
+                  onChange={e => setEditFormData({...editFormData, status: e.target.value})}
+                >
                   <option value="Pending">Pending</option>
                   <option value="Overdue">Overdue</option>
                   <option value="Paid">Paid</option>
                 </select>
               </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setEditingInst(null)} className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded font-semibold transition">Cancel</button>
-                <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded font-semibold transition">Save</button>
+
+              <div className="pt-4 flex gap-2 border-t border-slate-100 mt-5 bg-slate-50 -mx-5 -mb-5 p-4">
+                <button 
+                  type="button" 
+                  onClick={() => setEditingInst(null)} 
+                  className="w-1/2 bg-white text-slate-700 border border-slate-250 py-2.5 rounded-xl font-bold hover:bg-slate-50 transition text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-2.5 rounded-xl font-bold transition text-xs uppercase tracking-wider cursor-pointer shadow-xs shadow-violet-500/10"
+                >
+                  Save Override
+                </button>
               </div>
             </form>
           </div>

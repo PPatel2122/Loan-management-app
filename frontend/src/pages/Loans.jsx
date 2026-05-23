@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
-import { Plus, Eye, Trash2, X, Users } from 'lucide-react';
+import { Plus, Eye, Trash2, X, Users, CreditCard, Calendar, Percent, CalendarDays } from 'lucide-react';
 
 const Loans = () => {
   const { user } = useContext(AuthContext);
@@ -90,140 +90,177 @@ const Loans = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Active & Defaulted Group Loans</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage joint liability group loans and repayments</p>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Active Group Loans</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage joint liability group loans, outstanding principals, and repayments</p>
         </div>
         {user?.role === 'Admin' && (
           <button 
             onClick={openCreateModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center gap-2 transition font-medium"
+            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition font-bold text-xs shadow-md shadow-violet-500/15 cursor-pointer uppercase tracking-wider shrink-0"
           >
-            <Plus size={20} /> Create Group Loan
+            <Plus size={16} /> Create Group Loan
           </button>
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table className="w-full text-left whitespace-nowrap">
-          <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-medium">
-            <tr>
-              <th className="px-6 py-4">Group Recipient</th>
-              <th className="px-6 py-4">Amount</th>
-              <th className="px-6 py-4">Installment (Kist)</th>
-              <th className="px-6 py-4">Duration</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {loans.map((loan) => {
-              const groupName = loan.groupId?.name || 'Unknown Group';
-              return (
-                <tr key={loan._id} className="hover:bg-slate-50">
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                      <Users size={12} /> {groupName}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 font-medium">₹{loan.amount.toLocaleString()}</td>
-                  <td className="px-6 py-4 text-slate-600 font-medium">
-                    ₹{loan.emiAmount.toLocaleString()}
-                    <span className="text-[10px] text-slate-400 font-bold block">
-                      {loan.paymentFrequency === 'Weekly' ? 'Weekly' : 'Monthly'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 font-medium">
-                    {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'wks' : 'mos'}
-                  </td>
-                  <td className="px-6 py-4">
-                    {loan.status === 'Active' && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Active</span>}
-                    {loan.status === 'Completed' && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Completed</span>}
-                    {loan.status === 'Defaulted' && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">Defaulted</span>}
-                  </td>
-                  <td className="px-6 py-4 flex items-center gap-4">
-                    <Link to={`/loans/${loan._id}`} className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm font-semibold transition">
-                      <Eye size={16} /> View
-                    </Link>
-                    {user?.role === 'Admin' && (
-                      <button 
-                        onClick={() => handleDeleteLoan(loan._id, groupName)}
-                        className="text-red-500 hover:text-red-700 flex items-center gap-1 text-sm font-semibold transition"
-                      >
-                        <Trash2 size={16} /> Delete
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-            {loans.length === 0 && (
+      {/* Main Table Wrapper */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left whitespace-nowrap border-collapse">
+            <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
               <tr>
-                <td colSpan="6" className="px-6 py-8 text-center text-slate-500 font-medium">No active group loans found.</td>
+                <th className="px-6 py-4">Group Recipient</th>
+                <th className="px-6 py-4">Amount Issued</th>
+                <th className="px-6 py-4">Installment (Kist)</th>
+                <th className="px-6 py-4">Loan Tenure</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Actions</th>
               </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {loans.map((loan) => {
+                const groupName = loan.groupId?.name || 'Unknown Group';
+                return (
+                  <tr key={loan._id} className="hover:bg-slate-50/60 transition cursor-pointer">
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold bg-violet-50 text-violet-700 border border-violet-100 uppercase tracking-wide">
+                        <Users size={12} className="text-violet-500" /> {groupName}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-black text-slate-800 text-sm">₹{loan.amount.toLocaleString('en-IN')}</td>
+                    <td className="px-6 py-4 font-extrabold text-slate-700 text-xs">
+                      ₹{loan.emiAmount.toLocaleString('en-IN')}
+                      <span className="text-[9px] text-slate-400 font-extrabold block mt-0.5 uppercase tracking-wider">
+                        {loan.paymentFrequency === 'Weekly' ? 'Weekly Kist' : 'Monthly EMI'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-600 font-bold text-xs">
+                      {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'weeks' : 'months'}
+                    </td>
+                    <td className="px-6 py-4">
+                      {loan.status === 'Active' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wide">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" /> Active
+                        </span>
+                      )}
+                      {loan.status === 'Completed' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wide">
+                          Completed
+                        </span>
+                      )}
+                      {loan.status === 'Defaulted' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wide">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-bounce" /> Defaulted
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end items-center gap-2">
+                        <Link 
+                          to={`/loans/${loan._id}`} 
+                          className="text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
+                        >
+                          <Eye size={13} /> View Ledger
+                        </Link>
+                        {user?.role === 'Admin' && (
+                          <button 
+                            onClick={() => handleDeleteLoan(loan._id, groupName)}
+                            className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
+                            title="Delete Loan"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {loans.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No active group loans found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
+      {/* Redesigned Beautiful Create Loan Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-800">Create New Group Loan</h2>
-                <p className="text-xs text-slate-500 mt-1">Disburse a new joint liability group loan</p>
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-1.5">
+                  <CreditCard size={18} className="text-violet-600" /> Create Group Loan
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Disburse credit to a joint liability microfinance group</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600">
-                <X size={24} />
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
               </button>
             </div>
             
-            <div className="p-6 flex-1 overflow-y-auto">
-              {error && <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-sm font-medium">{error}</div>}
+            <div className="p-6 overflow-y-auto">
+              {error && (
+                <div className="mb-4 p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <X size={14} />
+                  <span>{error}</span>
+                </div>
+              )}
               
               <form onSubmit={handleCreateLoan} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">Customer Group</label>
+                <div className="text-left">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Customer Group *</label>
                   <select 
                     required
-                    className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-slate-800 text-sm transition"
+                    className="w-full p-3 border border-slate-355 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-semibold transition"
                     value={formData.groupId} 
                     onChange={e => setFormData({...formData, groupId: e.target.value})}
                   >
                     <option value="">Select a customer group</option>
-                    {groups.map(g => <option key={g._id} value={g._id}>{g.name} ({g.members?.length || 0} members)</option>)}
+                    {groups.map(g => (
+                      <option key={g._id} value={g._id}>
+                        {g.name} ({g.members?.length || 0} members)
+                      </option>
+                    ))}
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 text-left">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Principal Amount (₹)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Principal Amount (₹) *</label>
                     <input 
                       type="number" required min="1"
-                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 text-sm"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
                       value={formData.amount} 
                       onChange={e => setFormData({...formData, amount: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Interest Rate (% p.a.)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Interest (% p.a.) *</label>
                     <input 
                       type="number" required min="0" step="0.1"
-                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 text-sm"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
                       value={formData.interestRate} 
                       onChange={e => setFormData({...formData, interestRate: e.target.value})}
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 text-left">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Payment Frequency</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment Frequency</label>
                     <select
-                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white text-slate-800 text-sm transition"
+                      className="w-full p-2.5 border border-slate-355 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-semibold transition"
                       value={formData.paymentFrequency}
                       onChange={e => setFormData({...formData, paymentFrequency: e.target.value})}
                     >
@@ -232,41 +269,41 @@ const Loans = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Start Date</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Start Date</label>
                     <input 
-                      type="date"
-                      className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 text-sm"
+                      type="date" required
+                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
                       value={formData.startDate} 
                       onChange={e => setFormData({...formData, startDate: e.target.value})}
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1">
-                    Duration {formData.paymentFrequency === 'Weekly' ? '(Weeks)' : '(Months)'}
+                <div className="text-left">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Loan Duration ({formData.paymentFrequency === 'Weekly' ? 'Weeks' : 'Months'}) *
                   </label>
                   <input 
                     type="number" required min="1"
-                    className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-slate-800 text-sm"
+                    className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
                     value={formData.duration} 
                     onChange={e => setFormData({...formData, duration: e.target.value})}
                   />
                 </div>
 
-                <div className="pt-4 border-t border-slate-100 mt-6 flex gap-3">
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
                   <button 
                     type="button" 
                     onClick={() => setShowModal(false)}
-                    className="w-1/2 bg-slate-100 text-slate-700 p-2.5 rounded-lg font-semibold hover:bg-slate-200 transition"
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="w-1/2 bg-blue-600 text-white p-2.5 rounded-lg font-semibold hover:bg-blue-700 transition"
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
                   >
-                    Create & Disburse
+                    Disburse Capital
                   </button>
                 </div>
               </form>

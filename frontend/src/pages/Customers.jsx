@@ -8,7 +8,7 @@ import {
   BookOpen, ChevronDown, ChevronUp, Printer
 } from 'lucide-react';
 
-// Color-coded Credit Gauge Helper
+// Color-coded Credit Gauge Helper (Redesigned with premium neon rings and typography)
 const renderCreditGauge = (score, grade) => {
   const radius = 36;
   const stroke = 6;
@@ -16,30 +16,30 @@ const renderCreditGauge = (score, grade) => {
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
-  let colorClass = 'stroke-red-500 text-red-600 bg-red-50';
-  let trackColorClass = 'stroke-red-100';
+  let colorClass = 'stroke-rose-500 text-rose-600 bg-rose-50 border-rose-100';
+  let trackColorClass = 'stroke-rose-100/60';
   let gradeText = 'High Risk';
   if (grade === 'A') {
-    colorClass = 'stroke-emerald-500 text-emerald-600 bg-emerald-50';
-    trackColorClass = 'stroke-emerald-100';
+    colorClass = 'stroke-emerald-500 text-emerald-600 bg-emerald-50 border-emerald-100';
+    trackColorClass = 'stroke-emerald-100/60';
     gradeText = 'Low Risk';
   } else if (grade === 'B') {
-    colorClass = 'stroke-indigo-500 text-indigo-600 bg-indigo-50';
-    trackColorClass = 'stroke-indigo-100';
+    colorClass = 'stroke-indigo-500 text-indigo-600 bg-indigo-50 border-indigo-100';
+    trackColorClass = 'stroke-indigo-100/60';
     gradeText = 'Mod-Low Risk';
   } else if (grade === 'C') {
-    colorClass = 'stroke-amber-500 text-amber-600 bg-amber-50';
-    trackColorClass = 'stroke-amber-100';
+    colorClass = 'stroke-amber-500 text-amber-600 bg-amber-50 border-amber-100';
+    trackColorClass = 'stroke-amber-100/60';
     gradeText = 'Mod-High Risk';
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-2.5 bg-white rounded-lg border border-slate-100 shadow-sm space-y-1">
+    <div className="flex flex-col items-center justify-center p-3 bg-slate-50/50 rounded-2xl border border-slate-100 shadow-sm space-y-1.5 min-w-[90px] transition-premium hover:shadow-md">
       <div className="relative flex items-center justify-center">
         <svg
           height={radius * 2}
           width={radius * 2}
-          className="transform -rotate-90"
+          className="transform -rotate-90 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.02)]"
         >
           <circle
             className={trackColorClass}
@@ -63,17 +63,17 @@ const renderCreditGauge = (score, grade) => {
         </svg>
         <div className="absolute flex flex-col items-center">
           <span className="text-sm font-black text-slate-800 leading-none">{score}</span>
-          <span className="text-[7px] font-extrabold text-slate-400 mt-0.5">SCORE</span>
+          <span className="text-[7px] font-extrabold text-slate-400 mt-0.5 tracking-wider">SCORE</span>
         </div>
       </div>
       <div className="text-center">
-        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[8px] font-extrabold ${
-          grade === 'A' ? 'bg-emerald-100 text-emerald-800' :
-          grade === 'B' ? 'bg-indigo-100 text-indigo-800' :
-          grade === 'C' ? 'bg-amber-100 text-amber-800' :
-          'bg-red-100 text-red-800'
+        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-extrabold tracking-wide uppercase ${
+          grade === 'A' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+          grade === 'B' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' :
+          grade === 'C' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+          'bg-rose-50 text-rose-700 border border-rose-100'
         }`}>
-          Grade {grade}
+          {gradeText}
         </span>
       </div>
     </div>
@@ -638,40 +638,40 @@ const Customers = () => {
     c => selectedGroup && !selectedGroup.members.some(m => m._id === c._id)
   );
 
-  // Modular Form Inputs Generator (Reusable & extremely clean)
+  // Modular Form Inputs Generator (Redesigned with premium input cards & details)
   const renderCustomerFieldsForm = (values, setValues) => {
     return (
-      <div className="space-y-4 text-left">
+      <div className="space-y-5 text-left">
         {/* Core Personal Details */}
-        <fieldset className="border border-slate-200 p-4 rounded-xl space-y-3 bg-slate-50/30">
-          <legend className="text-xs font-bold text-indigo-600 px-2 bg-white flex items-center gap-1">
-            <Users size={12} /> Personal Identity
+        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
+          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+            <Users size={12} /> Personal Identity Details
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Full Name *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
               <input 
                 type="text" required
-                placeholder="Borrower full name"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="Borrower's complete name"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.name} onChange={e => setValues({...values, name: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Mobile Number *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mobile Number *</label>
               <input 
                 type="text" required
-                placeholder="10-digit phone"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="10-digit number"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.phone} onChange={e => setValues({...values, phone: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Aadhaar Number</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Aadhaar Number</label>
               <input 
                 type="text"
-                placeholder="12-digit number"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="12-digit UIDAI ID"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.aadhaarNumber} onChange={e => setValues({...values, aadhaarNumber: e.target.value})}
               />
             </div>
@@ -679,55 +679,55 @@ const Customers = () => {
         </fieldset>
 
         {/* Family Structure */}
-        <fieldset className="border border-slate-200 p-4 rounded-xl space-y-3 bg-slate-50/30">
-          <legend className="text-xs font-bold text-indigo-600 px-2 bg-white flex items-center gap-1">
+        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
+          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
             <Shield size={12} /> Family Relations
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Father's Name</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Father's Name</label>
               <input 
                 type="text"
                 placeholder="Father's full name"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.fatherName} onChange={e => setValues({...values, fatherName: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Mother's Name</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mother's Name</label>
               <input 
                 type="text"
                 placeholder="Mother's full name"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.motherName} onChange={e => setValues({...values, motherName: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Spouse's Name</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Spouse's Name</label>
               <input 
                 type="text"
                 placeholder="Husband/Wife's name"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.spouseName} onChange={e => setValues({...values, spouseName: e.target.value})}
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-1">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
             <div className="md:col-span-3">
-              <label className="block text-xs font-bold text-slate-600 mb-1">Children Names (Separate with spaces)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Children Names (Separate with spaces)</label>
               <input 
                 type="text"
                 placeholder="e.g. Amit Rohit Rahul"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.childrenNames} onChange={e => setValues({...values, childrenNames: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Total Children</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Total Children</label>
               <input 
                 type="number" min="0"
                 placeholder="0"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.totalChildren} onChange={e => setValues({...values, totalChildren: e.target.value})}
               />
             </div>
@@ -735,33 +735,33 @@ const Customers = () => {
         </fieldset>
 
         {/* Finance & Employment */}
-        <fieldset className="border border-slate-200 p-4 rounded-xl space-y-3 bg-slate-50/30">
-          <legend className="text-xs font-bold text-indigo-600 px-2 bg-white flex items-center gap-1">
-            <Briefcase size={12} /> Occupation & Financials
+        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
+          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+            <Briefcase size={12} /> Occupation & Financial Ratios
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-600 mb-1">Occupation</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Occupation / Job</label>
               <input 
                 type="text"
-                placeholder="e.g. Farming, Tailoring, Shopkeeper"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="e.g. Farming, Tailoring, Dairy"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.occupation} onChange={e => setValues({...values, occupation: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Monthly Income (₹)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Monthly Income (₹)</label>
               <input 
                 type="number" min="0"
                 placeholder="Income in ₹"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.monthlyIncome} onChange={e => setValues({...values, monthlyIncome: e.target.value})}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Home Type</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Residence Status</label>
               <select 
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                className="w-full p-2.5 border border-slate-355 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.homeType} onChange={e => setValues({...values, homeType: e.target.value})}
               >
                 <option value="">Select Option</option>
@@ -771,37 +771,37 @@ const Customers = () => {
             </div>
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-600 mb-1">Available Assets</label>
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Collateral / Assets Description</label>
             <input 
               type="text"
-              placeholder="e.g. Land (1 Acre), Tractor, Cow (2 Nos), Gold Jewelry"
-              className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+              placeholder="e.g. Land (1 Acre), tractor, 2 cows"
+              className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
               value={values.assets} onChange={e => setValues({...values, assets: e.target.value})}
             />
           </div>
         </fieldset>
 
         {/* Addresses */}
-        <fieldset className="border border-slate-200 p-4 rounded-xl space-y-3 bg-slate-50/30">
-          <legend className="text-xs font-bold text-indigo-600 px-2 bg-white flex items-center gap-1">
-            <MapPin size={12} /> Address Proofs
+        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
+          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+            <MapPin size={12} /> Address Credentials
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Current Address *</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Current Address *</label>
               <textarea 
                 required rows="2"
-                placeholder="Verified current resident address"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="Verified current local address"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.address} onChange={e => setValues({...values, address: e.target.value})}
               ></textarea>
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 mb-1">Permanent Address</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Permanent Address</label>
               <textarea 
                 rows="2"
-                placeholder="Enter permanent address (leave empty if same as current)"
-                className="w-full p-2 border border-slate-300 rounded-lg text-slate-800 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"
+                placeholder="Permanent home address (Leave blank if same)"
+                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.permanentAddress} onChange={e => setValues({...values, permanentAddress: e.target.value})}
               ></textarea>
             </div>
@@ -817,38 +817,38 @@ const Customers = () => {
       {selectedGroup ? (
         <div className="space-y-6 animate-fade-in">
           {/* Header Panel */}
-          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setSelectedGroup(null)}
-                className="p-2 bg-slate-50 hover:bg-slate-100 rounded-lg text-slate-600 transition"
+                className="p-2.5 bg-slate-100 hover:bg-slate-200 active:scale-95 rounded-xl text-slate-650 transition cursor-pointer"
                 title="Back to Dashboard"
               >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={18} />
               </button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-slate-800">{selectedGroup.name}</h1>
+              <div className="text-left">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">{selectedGroup.name}</h1>
                   {user?.role === 'Admin' && (
                     <button 
                       onClick={handleRenameGroup}
-                      className="p-1 text-slate-400 hover:text-indigo-600 hover:bg-slate-50 rounded transition"
+                      className="p-1 text-slate-400 hover:text-violet-600 hover:bg-slate-50 rounded-lg transition cursor-pointer"
                       title="Rename Group"
                     >
-                      <Edit3 size={16} />
+                      <Edit3 size={15} />
                     </button>
                   )}
                 </div>
-                <p className="text-sm text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span>Joint Liability Microfinance Group details and administrative tools</span>
+                <p className="text-xs text-slate-500 mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                  <span>Joint Liability Microfinance Group administrative portfolio</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-slate-300 hidden sm:inline"></span>
                   <span className="text-xs font-semibold flex items-center gap-1.5">
-                    Collector: {selectedGroup.collector ? (
-                      <span className="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-bold">
+                    Roster Collector: {selectedGroup.collector ? (
+                      <span className="text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-100 font-bold uppercase tracking-wider text-[9px]">
                         {selectedGroup.collector.name}
                       </span>
                     ) : (
-                      <span className="text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200 font-bold">
+                      <span className="text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200 font-bold uppercase tracking-wider text-[9px]">
                         Unassigned
                       </span>
                     )}
@@ -857,34 +857,34 @@ const Customers = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3 w-full md:w-auto">
+            <div className="flex flex-wrap gap-2.5 w-full lg:w-auto">
               {user?.role === 'Admin' && (
                 <button 
                   onClick={handleOpenAddMemberModal}
-                  className="flex-1 md:flex-initial bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm border border-indigo-100 shadow-sm"
+                  className="flex-1 lg:flex-initial bg-violet-50 hover:bg-violet-100 text-violet-700 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs border border-violet-100 shadow-sm shadow-violet-500/5 cursor-pointer"
                 >
-                  <UserPlus size={18} /> Add Member
+                  <UserPlus size={16} /> Add Member
                 </button>
               )}
               <button 
                 onClick={handleOpenCollectionSheet}
-                className="flex-1 md:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm shadow-sm"
+                className="flex-1 lg:flex-initial bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs shadow-md shadow-violet-500/15 cursor-pointer"
               >
-                <Layers size={18} /> Collection Sheet
+                <Layers size={16} /> Collection Sheet
               </button>
               {user?.role === 'Admin' && (
                 <>
                   <button 
                     onClick={() => setShowDisburseLoanModal(true)}
-                    className="flex-1 md:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm shadow-sm"
+                    className="flex-1 lg:flex-initial bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs shadow-md shadow-emerald-500/15 cursor-pointer"
                   >
-                    <CreditCard size={18} /> Disburse Loan
+                    <CreditCard size={16} /> Disburse Loan
                   </button>
                   <button 
                     onClick={() => handleDeleteGroup(selectedGroup._id, selectedGroup.name)}
-                    className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm border border-red-100"
+                    className="bg-rose-50 hover:bg-rose-100 text-rose-600 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs border border-rose-100 cursor-pointer"
                   >
-                    <Trash2 size={18} /> Delete Group
+                    <Trash2 size={16} /> Delete Group
                   </button>
                 </>
               )}
@@ -892,288 +892,171 @@ const Customers = () => {
           </div>
 
           {/* Group Stats Roster */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="p-3.5 bg-blue-50 text-blue-600 rounded-xl">
-                <Users size={22} />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+              <div className="p-3 bg-violet-50 text-violet-600 rounded-xl border border-violet-100">
+                <Users size={20} />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Total Members</p>
-                <h3 className="text-xl font-bold text-slate-800 mt-1">{selectedGroup.members?.length || 0} Members</h3>
+              <div className="text-left">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Group Size</p>
+                <h3 className="text-lg font-black text-slate-800 mt-1">{selectedGroup.members?.length || 0} Members</h3>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="p-3.5 bg-emerald-50 text-emerald-600 rounded-xl">
-                <CreditCard size={22} />
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+              <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
+                <CreditCard size={20} />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Active Loans</p>
-                <h3 className="text-xl font-bold text-slate-800 mt-1">
-                  {selectedGroupLoans.filter(l => l.status === 'Active').length} Active
+              <div className="text-left">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Active Credits</p>
+                <h3 className="text-lg font-black text-slate-800 mt-1">
+                  {selectedGroupLoans.filter(l => l.status === 'Active').length} Loans Active
                 </h3>
               </div>
             </div>
-            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="p-3.5 bg-amber-50 text-amber-600 rounded-xl">
-                <CheckCircle2 size={22} />
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all duration-300">
+              <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100">
+                <CheckCircle2 size={20} />
               </div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider">KYC Verified Ratio</p>
-                <h3 className="text-xl font-bold text-slate-800 mt-1">
-                  {selectedGroup.members?.length > 0 
-                    ? Math.round((selectedGroup.members.filter(m => m.isVerified).length / selectedGroup.members.length) * 100)
-                    : 0}% Verified
+              <div className="text-left">
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Repayments Status</p>
+                <h3 className="text-lg font-black text-slate-800 mt-1">
+                  {selectedGroupLoans.filter(l => l.status === 'Completed').length} Fully Settled
                 </h3>
               </div>
             </div>
           </div>
 
-          {/* Details Tabs Sections */}
+          {/* Group Details Workspace */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            
-            {/* Members Roster List */}
+            {/* Members List Panel */}
             <div className="lg:col-span-2 space-y-4">
               <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <Users size={18} className="text-indigo-600" /> Member Directory
+                <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                  <Users size={18} className="text-violet-600" /> Borrower Directory ({selectedGroup.members?.length || 0})
                 </h2>
-                <span className="text-xs font-semibold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-full">
-                  {selectedGroup.members?.length || 0} Total
-                </span>
               </div>
 
-              {/* Roster Cards with full 14 Details support */}
               <div className="space-y-4">
                 {selectedGroup.members?.map((member) => {
                   const isExpanded = !!expandedCards[member._id];
                   return (
-                    <div key={member._id} className="bg-white rounded-xl border border-slate-200 shadow-sm hover:border-slate-300 transition duration-200">
-                      {/* Top Header Card */}
+                    <div 
+                      key={member._id} 
+                      className="bg-white border border-slate-100 hover:border-slate-200 rounded-2xl shadow-sm overflow-hidden transition-premium hover:shadow-md"
+                    >
+                      {/* Condensed Summary Row */}
                       <div 
-                        className="p-5 flex justify-between items-start cursor-pointer select-none"
                         onClick={() => toggleCardExpansion(member._id)}
+                        className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 cursor-pointer hover:bg-slate-50/40 select-none"
                       >
-                        <div className="space-y-1">
-                          <h4 className="font-extrabold text-slate-800 text-lg flex items-center gap-2">
-                            {member.name}
-                            {member.isVerified ? (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
-                                <Check size={8} /> Verified
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
-                                <Clock size={8} /> Pending
-                              </span>
-                            )}
-                            {member.riskAnalysis && (
-                              <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-extrabold shadow-sm ${
-                                member.riskAnalysis.grade === 'A' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                                member.riskAnalysis.grade === 'B' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
-                                member.riskAnalysis.grade === 'C' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                                'bg-red-100 text-red-800 border border-red-200'
-                              }`}>
-                                Grade {member.riskAnalysis.grade}
-                              </span>
-                            )}
-                          </h4>
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-slate-500 text-xs font-semibold">
-                            <span className="flex items-center gap-1"><Phone size={12} /> {member.phone}</span>
-                            {member.aadhaarNumber && <span className="flex items-center gap-1"><Shield size={12} /> Aadhaar: {member.aadhaarNumber}</span>}
-                            {member.occupation && <span className="flex items-center gap-1"><Briefcase size={12} /> {member.occupation}</span>}
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-sm shrink-0">
+                            {member.name ? member.name.charAt(0).toUpperCase() : 'B'}
+                          </div>
+                          <div className="text-left">
+                            <h4 className="font-extrabold text-slate-800 text-sm flex items-center gap-2 flex-wrap">
+                              {member.name}
+                              {member.isVerified ? (
+                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[8px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100 uppercase tracking-wide">
+                                  <UserCheck size={9} /> KYC Verified
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[8px] font-bold bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wide">
+                                  <Clock size={9} /> KYC Pending
+                                </span>
+                              )}
+                            </h4>
+                            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                              <Phone size={12} className="text-slate-400" /> {member.phone}
+                            </p>
                           </div>
                         </div>
 
-                        <button className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-50 rounded-lg">
-                          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                        </button>
+                        <div className="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end" onClick={e => e.stopPropagation()}>
+                          {/* Render credit score gauge */}
+                          {renderCreditGauge(member.creditScore || 75, member.creditGrade || 'B')}
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => toggleCardExpansion(member._id)}
+                              className="p-1.5 hover:bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg transition"
+                              title="Toggle Details"
+                            >
+                              {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                            </button>
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Expandable 14 Fields Panel with premium layouts */}
+                      {/* Expanded Details Panel */}
                       {isExpanded && (
-                        <div className="px-5 pb-5 border-t border-slate-100 pt-4 space-y-4 bg-slate-50/20 animate-fade-in text-xs">
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <div className="border-t border-slate-100 bg-slate-50/40 p-5 space-y-4 animate-fade-in text-left">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            {/* Personal Card */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs space-y-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">KYC Profile</span>
+                              <div className="space-y-1.5 text-xs text-slate-700">
+                                <p><strong>Father:</strong> {member.fatherName || 'N/A'}</p>
+                                <p><strong>Mother:</strong> {member.motherName || 'N/A'}</p>
+                                <p><strong>Spouse:</strong> {member.spouseName || 'N/A'}</p>
+                                <p><strong>Aadhaar:</strong> {member.aadhaarNumber || 'N/A'}</p>
+                              </div>
+                            </div>
+
+                            {/* Financial Card */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs space-y-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Financial Ratios</span>
+                              <div className="space-y-1.5 text-xs text-slate-700">
+                                <p><strong>Occupation:</strong> {member.occupation || 'N/A'}</p>
+                                <p><strong>Monthly Income:</strong> ₹{(member.monthlyIncome || 0).toLocaleString()}</p>
+                                <p><strong>Home Status:</strong> {member.homeType || 'N/A'}</p>
+                                <p><strong>Family:</strong> {member.totalChildren || 0} Children ({member.childrenNames || 'None'})</p>
+                              </div>
+                            </div>
+
+                            {/* Location & Collateral Card */}
+                            <div className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs space-y-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Assets & Location</span>
+                              <div className="space-y-1.5 text-xs text-slate-700">
+                                <p className="flex items-start gap-1">
+                                  <MapPin size={13} className="text-slate-400 mt-0.5 shrink-0" />
+                                  <span>{member.address}</span>
+                                </p>
+                                <p><strong>Permanent:</strong> {member.permanentAddress || member.address}</p>
+                                <p><strong>Assets:</strong> {member.assets || 'None listed'}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Bar */}
+                          <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
+                            <button
+                              onClick={() => handleToggleVerification(member)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                                member.isVerified 
+                                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-100'
+                              }`}
+                            >
+                              <UserCheck size={14} />
+                              {member.isVerified ? 'Revoke Verification' : 'Verify KYC Documents'}
+                            </button>
                             
-                            {/* Borrower Credit Risk Scorecard */}
-                            <div className="bg-white p-3 rounded-lg border border-slate-150 space-y-3 flex flex-col justify-between">
-                              <h5 className="font-bold border-b pb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider text-indigo-600">
-                                <Shield size={12} /> Credit Risk Scorecard
-                              </h5>
-                              
-                              {member.riskAnalysis ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                                  {/* Gauge Column */}
-                                  <div className="sm:col-span-5 flex justify-center">
-                                    {renderCreditGauge(member.riskAnalysis.score, member.riskAnalysis.grade)}
-                                  </div>
-                                  
-                                  {/* Factors Column */}
-                                  <div className="sm:col-span-7 space-y-2 text-[10px]">
-                                    <div className="font-bold text-slate-700 uppercase tracking-wider text-[9px] mb-1">Score Breakdown</div>
-                                    <div className="space-y-1.5">
-                                      <div className="flex justify-between items-center bg-slate-50 p-1 rounded">
-                                        <span className="font-semibold text-slate-500">Income Stability:</span>
-                                        <span className={`font-bold ${member.riskAnalysis.factors.income.points >= 20 ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                          {member.riskAnalysis.factors.income.points}/30 pts
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center bg-slate-50 p-1 rounded">
-                                        <span className="font-semibold text-slate-500">Housing Status:</span>
-                                        <span className={`font-bold ${member.riskAnalysis.factors.home.points >= 15 ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                          {member.riskAnalysis.factors.home.points}/25 pts
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center bg-slate-50 p-1 rounded">
-                                        <span className="font-semibold text-slate-500">Verified Collateral:</span>
-                                        <span className={`font-bold ${member.riskAnalysis.factors.assets.points >= 20 ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                          {member.riskAnalysis.factors.assets.points}/25 pts
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between items-center bg-slate-50 p-1 rounded">
-                                        <span className="font-semibold text-slate-500">Occupation Status:</span>
-                                        <span className={`font-bold ${member.riskAnalysis.factors.occupation.points >= 15 ? 'text-emerald-600' : 'text-slate-700'}`}>
-                                          {member.riskAnalysis.factors.occupation.points}/20 pts
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="text-center py-4 text-slate-400 font-semibold italic text-[11px]">
-                                  No credit score available. Complete KYC profile to generate.
-                                </div>
-                              )}
-
-                              {/* Peer Liability / Group Health Alert */}
-                              {member.riskAnalysis && (
-                                <div className={`mt-2 p-2 rounded-md border text-[9px] flex items-center gap-1.5 ${
-                                  member.riskAnalysis.factors.penalty.active 
-                                    ? 'bg-red-50 text-red-800 border-red-100' 
-                                    : 'bg-emerald-50 text-emerald-800 border-emerald-100'
-                                }`}>
-                                  {member.riskAnalysis.factors.penalty.active ? (
-                                    <>
-                                      <AlertCircle size={14} className="text-red-500 shrink-0" />
-                                      <div>
-                                        <span className="font-bold block">Peer Liability Penalty Active (-20)</span>
-                                        <span className="text-[8px] text-red-600 font-medium">Co-debtor co-borrower has overdue loans.</span>
-                                      </div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
-                                      <div>
-                                        <span className="font-bold block">Peer Liability Status: Good</span>
-                                        <span className="text-[8px] text-emerald-600 font-medium">All group members are in positive standing.</span>
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Family Details Sub-panel */}
-                            <div className="bg-white p-3 rounded-lg border border-slate-150 space-y-2">
-                              <h5 className="font-bold border-b pb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider text-indigo-600">
-                                <Users size={12} /> Family Information
-                              </h5>
-                              <div className="grid grid-cols-2 gap-2 text-slate-600">
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Father's Name</span>
-                                  <span className="font-bold text-slate-800">{member.fatherName || '—'}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Mother's Name</span>
-                                  <span className="font-bold text-slate-800">{member.motherName || '—'}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Spouse's Name</span>
-                                  <span className="font-bold text-slate-800">{member.spouseName || '—'}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Children Count</span>
-                                  <span className="font-bold text-slate-800">{member.totalChildren || 0} Children</span>
-                                </div>
-                              </div>
-                              {member.childrenNames && (
-                                <div className="pt-1.5 border-t text-[11px]">
-                                  <span className="font-semibold text-slate-400 block">Children Names</span>
-                                  <span className="font-bold text-slate-700">{member.childrenNames}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Financials & Status Sub-panel */}
-                            <div className="bg-white p-3 rounded-lg border border-slate-150 space-y-2">
-                              <h5 className="font-bold border-b pb-1 flex items-center gap-1 text-[11px] uppercase tracking-wider text-indigo-600">
-                                <Briefcase size={12} /> Income & Assets
-                              </h5>
-                              <div className="grid grid-cols-2 gap-2 text-slate-600">
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Monthly Income</span>
-                                  <span className="font-extrabold text-slate-800 text-sm">
-                                    {member.monthlyIncome ? `₹${member.monthlyIncome.toLocaleString()}` : '—'}
-                                  </span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold text-slate-400 block">Home Status</span>
-                                  <span className="font-bold text-slate-800">{member.homeType || '—'}</span>
-                                </div>
-                              </div>
-                              {member.assets && (
-                                <div className="pt-1.5 border-t text-[11px]">
-                                  <span className="font-semibold text-slate-400 block">Available Assets</span>
-                                  <span className="font-bold text-slate-700">{member.assets}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Address Details Block */}
-                          <div className="bg-white p-3 rounded-lg border border-slate-150 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">Current Address</span>
-                              <div className="flex gap-1 items-start text-slate-700 font-semibold leading-relaxed bg-slate-50 p-2 rounded border border-slate-100">
-                                <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                                <span>{member.address}</span>
-                              </div>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="font-bold text-[10px] text-slate-400 uppercase tracking-wider block">Permanent Address</span>
-                              <div className="flex gap-1 items-start text-slate-700 font-semibold leading-relaxed bg-slate-50 p-2 rounded border border-slate-100">
-                                <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-                                <span>{member.permanentAddress || member.address}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Action Row */}
-                          <div className="flex justify-between items-center pt-3 border-t border-slate-150">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleToggleVerification(member)}
-                                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition ${
-                                  member.isVerified 
-                                    ? 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-100' 
-                                    : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100'
-                                }`}
-                              >
-                                {member.isVerified ? 'Revoke Verification' : 'Verify Borrower'}
-                              </button>
-                              <button
-                                onClick={() => handleOpenEditCustomerModal(member)}
-                                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-205 transition"
-                              >
-                                Edit Profile
-                              </button>
-                            </div>
-
                             {user?.role === 'Admin' && (
-                              <button
-                                onClick={() => handleRemoveMember(member._id)}
-                                className="text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 transition"
-                              >
-                                Remove from Group
-                              </button>
+                              <>
+                                <button
+                                  onClick={() => handleOpenEditCustomerModal(member)}
+                                  className="px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-150 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Edit3 size={14} /> Edit Profile
+                                </button>
+                                <button
+                                  onClick={() => handleRemoveMember(member._id)}
+                                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                >
+                                  <Trash2 size={14} /> Remove Member
+                                </button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -1183,7 +1066,7 @@ const Customers = () => {
                 })}
 
                 {(!selectedGroup.members || selectedGroup.members.length === 0) && (
-                  <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500 font-medium">
+                  <div className="bg-white rounded-2xl border border-slate-200/60 p-8 text-center text-slate-500 font-medium">
                     No members inside this group. Click 'Add Member' to register individuals.
                   </div>
                 )}
@@ -1193,55 +1076,55 @@ const Customers = () => {
             {/* Group Loans panel */}
             <div className="space-y-4">
               <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                  <CreditCard size={18} className="text-emerald-600" /> Group Loans Roster
+                <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                  <CreditCard size={18} className="text-emerald-600" /> Group Loans Ledger
                 </h2>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {selectedGroupLoans.map((loan) => (
-                  <div key={loan._id} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3 hover:border-emerald-100 transition duration-200">
+                  <div key={loan._id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm space-y-3.5 hover:border-violet-200 hover:shadow-md transition-all duration-300 text-left">
                     <div className="flex justify-between items-center">
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Outstanding Loan</span>
-                        <h4 className="text-lg font-extrabold text-slate-800 mt-0.5">₹{loan.amount.toLocaleString()}</h4>
+                        <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider">Disbursed Principal</span>
+                        <h4 className="text-lg font-black text-slate-800 mt-0.5">₹{loan.amount.toLocaleString('en-IN')}</h4>
                       </div>
                       
                       {loan.status === 'Active' ? (
-                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100">
                           Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          Paid
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          Completed
                         </span>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50/50 p-2.5 rounded-lg border border-slate-100">
+                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                       <div>
-                        <span className="text-slate-400 font-semibold block">
+                        <span className="text-slate-400 font-bold block uppercase tracking-wider text-[8px]">
                           {loan.paymentFrequency === 'Weekly' ? 'Weekly Kist' : 'Monthly EMI'}
                         </span>
-                        <span className="font-bold text-slate-700">₹{loan.emiAmount}/{loan.paymentFrequency === 'Weekly' ? 'wk' : 'mo'}</span>
+                        <span className="font-extrabold text-slate-750">₹{loan.emiAmount}/{loan.paymentFrequency === 'Weekly' ? 'wk' : 'mo'}</span>
                       </div>
                       <div>
-                        <span className="text-slate-400 font-semibold block">Rate & Duration</span>
-                        <span className="font-bold text-slate-700">
-                          {loan.interestRate}% over {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'wks' : 'mos'}
+                        <span className="text-slate-400 font-bold block uppercase tracking-wider text-[8px]">Rate & Tenure</span>
+                        <span className="font-extrabold text-slate-750">
+                          {loan.interestRate}% @ {loan.duration} {loan.paymentFrequency === 'Weekly' ? 'wks' : 'mos'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 pt-1">
-                      <Calendar size={13} className="text-slate-400" />
+                    <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold pt-0.5">
+                      <Calendar size={12} className="text-slate-400" />
                       <span>Issued: {new Date(loan.startDate).toLocaleDateString()}</span>
                     </div>
                   </div>
                 ))}
 
                 {selectedGroupLoans.length === 0 && (
-                  <div className="bg-white rounded-xl border border-slate-200 p-8 text-center text-slate-500 font-medium">
+                  <div className="bg-white rounded-2xl border border-slate-150 p-8 text-center text-slate-500 font-medium">
                     No history of loans disbursed to this group.
                   </div>
                 )}
@@ -1254,50 +1137,50 @@ const Customers = () => {
         <div className="space-y-6">
           {/* Main Titles */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-800">Groups & Customers</h1>
-              <p className="text-sm text-slate-500 mt-1">Manage credit rosters, verify borrower KYC profiles, and orchestrate joint liability groups</p>
+            <div className="text-left">
+              <h1 className="text-2xl font-black text-slate-800 tracking-tight">Groups & Customers</h1>
+              <p className="text-sm text-slate-500 mt-1">Manage borrower credit ratings, verify KYC documents, and construct joint liability groups</p>
             </div>
             
             {user?.role === 'Admin' && (
-              <div className="flex gap-3 w-full sm:w-auto">
+              <div className="flex gap-2.5 w-full sm:w-auto">
                 <button 
                   onClick={handleOpenGroupModal}
-                  className="flex-1 sm:flex-initial bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm shadow-sm"
+                  className="flex-1 sm:flex-initial bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs shadow-md shadow-violet-500/15 cursor-pointer"
                 >
-                  <Users size={18} /> Create Group with Members
+                  <Users size={16} /> Create Group
                 </button>
                 <button 
                   onClick={() => { setShowModal(true); setError(''); setFormData(initialCustomerState); }}
-                  className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 transition font-semibold text-sm shadow-sm"
+                  className="flex-1 sm:flex-initial bg-white hover:bg-slate-50 text-slate-800 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs border border-slate-250 shadow-xs cursor-pointer"
                 >
-                  <Plus size={18} /> Add Customer
+                  <Plus size={16} /> Add Customer
                 </button>
               </div>
             )}
           </div>
 
           {/* Premium HSL Tabs Controls */}
-          <div className="flex bg-white px-4 rounded-xl border border-slate-100 shadow-sm">
+          <div className="flex bg-white px-4 rounded-2xl border border-slate-100 shadow-sm w-fit">
             <button
               onClick={() => setActiveTab('groups')}
-              className={`px-6 py-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 -mb-px ${
+              className={`px-5 py-4 font-bold text-xs transition-all border-b-2 flex items-center gap-2 -mb-px uppercase tracking-wider cursor-pointer ${
                 activeTab === 'groups'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-850'
               }`}
             >
-              <Layers size={18} /> Joint Liability Groups ({groups.length})
+              <Layers size={15} /> Joint Liability Groups ({groups.length})
             </button>
             <button
               onClick={() => setActiveTab('customers')}
-              className={`px-6 py-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 -mb-px ${
+              className={`px-5 py-4 font-bold text-xs transition-all border-b-2 flex items-center gap-2 -mb-px uppercase tracking-wider cursor-pointer ${
                 activeTab === 'customers'
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-slate-500 hover:text-slate-800'
+                  ? 'border-violet-600 text-violet-600'
+                  : 'border-transparent text-slate-500 hover:text-slate-850'
               }`}
             >
-              <Users size={18} /> Customers Directory ({customers.length})
+              <Users size={15} /> Customers Directory ({customers.length})
             </button>
           </div>
 
@@ -1305,13 +1188,13 @@ const Customers = () => {
           {activeTab === 'groups' && (
             <div className="space-y-4">
               <div className="relative max-w-md">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <Search size={18} />
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <Search size={16} />
                 </span>
                 <input 
                   type="text"
                   placeholder="Search groups by name..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none text-sm transition bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
                   value={groupSearchQuery}
                   onChange={e => setGroupSearchQuery(e.target.value)}
                 />
@@ -1320,88 +1203,80 @@ const Customers = () => {
               {loadingGroups ? (
                 <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">Loading Microfinance groups...</div>
               ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-                  <table className="w-full text-left whitespace-nowrap">
-                    <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-bold text-xs uppercase tracking-wider">
-                      <tr>
-                        <th className="px-6 py-4">Group Name</th>
-                        <th className="px-6 py-4">Members</th>
-                        <th className="px-6 py-4">Member Count</th>
-                        <th className="px-6 py-4">Collector</th>
-                        <th className="px-6 py-4">Created Date</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredGroups.map((group) => (
-                        <tr key={group._id} className="hover:bg-indigo-50/20 transition cursor-pointer" onClick={() => handleSelectGroup(group)}>
-                          <td className="px-6 py-4 font-extrabold text-slate-800 flex items-center gap-2">
-                            <span className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
-                              <Layers size={16} />
-                            </span>
-                            {group.name}
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1.5 max-w-md" onClick={e => e.stopPropagation()}>
-                              {group.members?.map((member) => (
-                                <span 
-                                  key={member._id} 
-                                  onClick={() => handleOpenEditCustomerModal(member)}
-                                  className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition"
-                                >
-                                  {member.name}
-                                </span>
-                              ))}
-                              {(!group.members || group.members.length === 0) && (
-                                <span className="text-slate-400 text-xs italic">Empty group</span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-slate-600 font-bold text-sm">{group.members?.length || 0} Members</td>
-                          <td className="px-6 py-4">
-                            {group.collector ? (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100" onClick={e => e.stopPropagation()}>
-                                {group.collector.name}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-150 text-slate-500 border border-slate-200" onClick={e => e.stopPropagation()}>
-                                Unassigned
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-slate-500 text-xs font-semibold">
-                            {new Date(group.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
-                            <div className="flex justify-end gap-2">
-                              <button 
-                                onClick={() => handleSelectGroup(group)}
-                                className="text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-indigo-100"
-                              >
-                                View Hub <ChevronRight size={14} />
-                              </button>
-                              {user?.role === 'Admin' && (
-                                <button 
-                                  onClick={() => handleDeleteGroup(group._id, group.name)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition"
-                                  title="Delete Group"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredGroups.length === 0 && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap border-collapse">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                         <tr>
-                          <td colSpan="5" className="px-6 py-10 text-center text-slate-500 font-semibold">
-                            No microfinance groups found. Set one up to initiate joint liability operations.
-                          </td>
+                          <th className="px-6 py-4">Group Name</th>
+                          <th className="px-6 py-4">Members</th>
+                          <th className="px-6 py-4">Capacity</th>
+                          <th className="px-6 py-4">Roster Collector</th>
+                          <th className="px-6 py-4">Disbursed Date</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredGroups.map((group) => (
+                          <tr key={group._id} className="hover:bg-slate-50/60 transition cursor-pointer" onClick={() => handleSelectGroup(group)}>
+                            <td className="px-6 py-4 font-black text-slate-800 flex items-center gap-2.5 text-sm">
+                              <span className="p-1.5 bg-violet-50 text-violet-600 rounded-lg border border-violet-100">
+                                <Layers size={14} />
+                              </span>
+                              {group.name}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex flex-wrap gap-1.5 max-w-sm md:max-w-md" onClick={e => e.stopPropagation()}>
+                                {group.members?.map((member) => (
+                                  <span 
+                                    key={member._id} 
+                                    onClick={() => handleOpenEditCustomerModal(member)}
+                                    className="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition cursor-pointer"
+                                  >
+                                    {member.name}
+                                  </span>
+                                ))}
+                                {(!group.members || group.members.length === 0) && (
+                                  <span className="text-slate-400 text-xs italic font-medium">Empty group</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-slate-700 font-bold text-xs">{group.members?.length || 0} Members</td>
+                            <td className="px-6 py-4">
+                              {group.collector ? (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-violet-50 text-violet-700 border border-violet-100" onClick={e => e.stopPropagation()}>
+                                  {group.collector.name}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-slate-100 text-slate-500 border border-slate-200" onClick={e => e.stopPropagation()}>
+                                  Unassigned
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-slate-500 text-xs font-semibold">
+                              {new Date(group.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
+                              <div className="flex justify-end gap-2">
+                                <button 
+                                  onClick={() => handleSelectGroup(group)}
+                                  className="text-violet-700 hover:text-violet-800 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-violet-100 cursor-pointer shadow-xs"
+                                >
+                                  Manage
+                                  <ChevronRight size={12} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredGroups.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No microfinance groups matched your search.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
@@ -1411,85 +1286,96 @@ const Customers = () => {
           {activeTab === 'customers' && (
             <div className="space-y-4">
               <div className="relative max-w-md">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <Search size={18} />
+                <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                  <Search size={16} />
                 </span>
                 <input 
                   type="text"
-                  placeholder="Search customers by name or phone..."
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none text-sm transition bg-white"
+                  placeholder="Search borrowers by name, phone..."
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
                   value={customerSearchQuery}
                   onChange={e => setCustomerSearchQuery(e.target.value)}
                 />
               </div>
 
               {loadingCustomers ? (
-                <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">Loading customers...</div>
+                <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">Syncing customer records...</div>
               ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-                  <table className="w-full text-left whitespace-nowrap">
-                    <thead className="bg-slate-50 border-b border-slate-100 text-slate-600 font-bold text-xs uppercase tracking-wider">
-                      <tr>
-                        <th className="px-6 py-4">Name</th>
-                        <th className="px-6 py-4">Phone</th>
-                        <th className="px-6 py-4">Aadhaar</th>
-                        <th className="px-6 py-4">Occupation</th>
-                        <th className="px-6 py-4">Income</th>
-                        <th className="px-6 py-4">Home Status</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredCustomers.map((c) => (
-                        <tr key={c._id} className="hover:bg-slate-50 transition">
-                          <td className="px-6 py-4 font-extrabold text-slate-800">{c.name}</td>
-                          <td className="px-6 py-4 text-slate-600 font-bold text-xs">{c.phone}</td>
-                          <td className="px-6 py-4 text-slate-500 font-bold text-xs">{c.aadhaarNumber || '—'}</td>
-                          <td className="px-6 py-4 text-slate-500 font-semibold text-xs">{c.occupation || '—'}</td>
-                          <td className="px-6 py-4 text-slate-700 font-extrabold text-xs">
-                            {c.monthlyIncome ? `₹${c.monthlyIncome.toLocaleString()}` : '—'}
-                          </td>
-                          <td className="px-6 py-4 text-slate-500 font-semibold text-xs">{c.homeType || '—'}</td>
-                          <td className="px-6 py-4">
-                            {c.isVerified ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 cursor-pointer" onClick={() => handleToggleVerification(c)}>
-                                <Check size={12} /> Verified
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 cursor-pointer" onClick={() => handleToggleVerification(c)}>
-                                <Clock size={12} /> Pending
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <div className="flex justify-end gap-2">
-                              <button 
-                                onClick={() => handleOpenEditCustomerModal(c)}
-                                className="text-slate-600 hover:text-indigo-600 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200"
-                              >
-                                Edit Profile
-                              </button>
-                              {user?.role === 'Admin' && (
-                                <button 
-                                  onClick={() => handleDeleteCustomer(c._id, c.name)}
-                                  className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg transition"
-                                  title="Delete Customer"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredCustomers.length === 0 && (
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left whitespace-nowrap border-collapse">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                         <tr>
-                          <td colSpan="8" className="px-6 py-10 text-center text-slate-500 font-semibold">No customers found in directory.</td>
+                          <th className="px-6 py-4">Borrower Name</th>
+                          <th className="px-6 py-4">Phone / Contact</th>
+                          <th className="px-6 py-4">KYC Status</th>
+                          <th className="px-6 py-4">Credit Score</th>
+                          <th className="px-6 py-4">Address</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {filteredCustomers.map((c) => (
+                          <tr key={c._id} className="hover:bg-slate-50/60 transition cursor-pointer" onClick={() => handleOpenEditCustomerModal(c)}>
+                            <td className="px-6 py-4 font-black text-slate-800 flex items-center gap-2.5 text-sm">
+                              <div className="w-8 h-8 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0">
+                                {c.name ? c.name.charAt(0).toUpperCase() : 'B'}
+                              </div>
+                              {c.name}
+                            </td>
+                            <td className="px-6 py-4 text-slate-600 font-bold text-xs">{c.phone}</td>
+                            <td className="px-6 py-4">
+                              {c.isVerified ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
+                                  <Check size={11} /> Verified
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
+                                  <Clock size={11} /> Pending
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex px-2 py-0.5 rounded-lg text-xs font-black border ${
+                                c.creditGrade === 'A' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                c.creditGrade === 'B' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                c.creditGrade === 'C' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                'bg-rose-50 text-rose-700 border-rose-200'
+                              }`}>
+                                {c.creditScore} ({c.creditGrade || 'B'})
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-slate-500 text-xs font-semibold max-w-xs truncate">{c.address}</td>
+                            <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
+                              <div className="flex justify-end gap-1.5">
+                                <button 
+                                  onClick={() => handleOpenEditCustomerModal(c)}
+                                  className="text-violet-750 hover:bg-violet-50 p-1.5 rounded-lg transition border border-transparent hover:border-violet-100 cursor-pointer"
+                                  title="Edit Profile"
+                                >
+                                  <Edit3 size={15} />
+                                </button>
+                                {user?.role === 'Admin' && (
+                                  <button 
+                                    onClick={() => handleDeleteCustomer(c._id, c.name)}
+                                    className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
+                                    title="Delete Profile"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {filteredCustomers.length === 0 && (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No customers found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
             </div>
@@ -1497,376 +1383,48 @@ const Customers = () => {
         </div>
       )}
 
-      {/* Add Single Customer Modal (14 Fields layout) */}
+      {/* Add Customer Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden my-8">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">Add New Borrower Profile</h2>
-                <p className="text-xs text-slate-500 mt-1">Register a new client profile with comprehensive 14 verification details</p>
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Register New Borrower</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Provide the comprehensive details for microfinance enrollment</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200">
-                <X size={24} />
+              <button 
+                onClick={() => setShowModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleCreateCustomer} className="p-6 space-y-4">
-              {error && <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-xs font-bold">{error}</div>}
-              
-              {renderCustomerFieldsForm(formData, setFormData)}
-              
-              <div className="pt-4 border-t border-slate-100 mt-6 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowModal(false)}
-                  className="w-1/2 bg-slate-100 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-200 transition text-xs border border-slate-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={loading} 
-                  className="w-1/2 bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition disabled:bg-blue-400 text-xs shadow-sm"
-                >
-                  {loading ? 'Registering Borrower...' : 'Register Borrower Profile'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Create Group with Inline Members Modal (Comprehensive Fields Support) */}
-      {showGroupModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden flex flex-col my-8 max-h-[90vh]">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">Create Joint Liability Group with Members</h2>
-                <p className="text-xs text-slate-500 mt-1">Setup a customer group and onboard member profiles concurrently with complete files</p>
-              </div>
-              <button onClick={() => setShowGroupModal(false)} className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200">
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateGroup} className="flex-1 overflow-y-auto p-6 space-y-6">
-              {groupError && <div className="p-3 bg-red-50 border border-red-100 text-red-700 rounded-lg text-xs font-bold">{groupError}</div>}
-              {groupSuccess && <div className="p-3 bg-emerald-50 border border-emerald-100 text-emerald-700 rounded-lg text-xs font-bold">{groupSuccess}</div>}
-
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">Group Name *</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="e.g. Unity Self-Help Group"
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 focus:outline-none transition text-slate-800 text-sm font-semibold"
-                  value={groupName} 
-                  onChange={e => setGroupName(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                  <h3 className="text-sm font-extrabold text-slate-700">Group Members Roster Details</h3>
-                  <button 
-                    type="button"
-                    onClick={handleAddMemberRow}
-                    className="text-indigo-600 hover:text-indigo-800 flex items-center gap-1 text-xs font-bold transition"
-                  >
-                    <PlusCircle size={16} /> Add Member Row
-                  </button>
+            <div className="p-6 flex-1 overflow-y-auto">
+              {error && (
+                <div className="mb-4 p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <AlertCircle size={14} />
+                  <span>{error}</span>
                 </div>
-
-                <div className="space-y-6">
-                  {groupMembers.map((member, idx) => (
-                    <div key={idx} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 space-y-4 relative animate-fade-in">
-                      {groupMembers.length > 1 && (
-                        <button 
-                          type="button"
-                          onClick={() => handleRemoveMemberRow(idx)}
-                          className="absolute top-4 right-4 text-slate-400 hover:text-red-500 transition p-1 hover:bg-white rounded border border-slate-200 bg-slate-50"
-                          title="Remove Member"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleMemberChange(idx, 'isExisting', false)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold transition ${
-                            !member.isExisting ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          <UserPlus size={12} /> New Customer
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleMemberChange(idx, 'isExisting', true)}
-                          className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold transition ${
-                            member.isExisting ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          <UserCheck size={12} /> Existing Customer
-                        </button>
-                      </div>
-
-                      {member.isExisting ? (
-                        <div className="text-left">
-                          <label className="block text-xs font-bold text-slate-600 mb-1">Select Customer</label>
-                          <select 
-                            required
-                            className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold"
-                            value={member.customerId}
-                            onChange={e => handleMemberChange(idx, 'customerId', e.target.value)}
-                          >
-                            <option value="">Choose a registered customer</option>
-                            {customers.map(c => (
-                              <option key={c._id} value={c._id}>{c.name} ({c.phone})</option>
-                            ))}
-                          </select>
-                        </div>
-                      ) : (
-                        renderCustomerFieldsForm(member, (val) => {
-                          const updated = [...groupMembers];
-                          updated[idx] = { ...updated[idx], ...val };
-                          setGroupMembers(updated);
-                        })
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4 mt-6 flex gap-3 bg-slate-50 p-4 -m-6 rounded-b-xl border-t border-slate-200">
-                <button 
-                  type="button" 
-                  onClick={() => setShowGroupModal(false)}
-                  className="w-1/2 bg-slate-200 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-300 transition text-xs border border-slate-300"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={groupLoading}
-                  className="w-1/2 bg-indigo-600 text-white p-3 rounded-lg font-bold hover:bg-indigo-700 transition disabled:bg-indigo-400 text-xs shadow-sm"
-                >
-                  {groupLoading ? 'Creating Group & Roster Members...' : 'Create Group & Roster'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Customer Profile details Modal (14 Fields layout) */}
-      {showEditMemberModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden my-8">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">Edit Customer Profile</h2>
-                <p className="text-xs text-slate-500 mt-1">Modify registered data details for credit verification and security checks</p>
-              </div>
-              <button onClick={() => { setShowEditMemberModal(false); setEditingCustomer(null); }} className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200">
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleEditCustomerSubmit} className="p-6 space-y-4">
-              {renderCustomerFieldsForm(editCustomerFormData, setEditCustomerFormData)}
-
-              <div className="pt-4 border-t border-slate-100 mt-6 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => { setShowEditMemberModal(false); setEditingCustomer(null); }}
-                  className="w-1/2 bg-slate-100 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-200 transition text-xs border border-slate-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="w-1/2 bg-indigo-600 text-white p-3 rounded-lg font-bold hover:bg-indigo-700 transition text-xs shadow-sm"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Member dynamically to Active Group Modal (14 Fields layout) */}
-      {showAddMemberModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl overflow-hidden my-8">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800">Add Member to {selectedGroup?.name}</h2>
-                <p className="text-xs text-slate-500 mt-1">Associate a customer with the active joint liability roster</p>
-              </div>
-              <button onClick={() => setShowAddMemberModal(false)} className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200">
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddMemberSubmit} className="p-6 space-y-4">
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAddMemberType('existing')}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-bold transition border ${
-                    addMemberType === 'existing' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <UserCheck size={14} /> Registered Customer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAddMemberType('new')}
-                  className={`flex-1 flex items-center justify-center gap-1 py-2.5 rounded-lg text-xs font-bold transition border ${
-                    addMemberType === 'new' ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <UserPlus size={14} /> Onboard New
-                </button>
-              </div>
-
-              {addMemberType === 'existing' ? (
-                <div className="text-left pt-2">
-                  <label className="block text-xs font-bold text-slate-600 mb-1">Select Customer</label>
-                  {availableExistingCustomers.length > 0 ? (
-                    <select 
-                      required
-                      className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-800 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none font-semibold"
-                      value={addMemberCustomerId}
-                      onChange={e => setAddMemberCustomerId(e.target.value)}
-                    >
-                      <option value="">Choose a verified customer</option>
-                      {availableExistingCustomers.map(c => (
-                        <option key={c._id} value={c._id}>{c.name} ({c.phone})</option>
-                      ))}
-                    </select>
-                  ) : (
-                    <div className="p-4 text-center text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-500 font-semibold">
-                      No registered customers available to join this group.
-                    </div>
-                  )}
-                </div>
-              ) : (
-                renderCustomerFieldsForm(addMemberFormData, setAddMemberFormData)
               )}
+              
+              <form onSubmit={handleCreateCustomer} className="space-y-6">
+                {renderCustomerFieldsForm(formData, setFormData)}
 
-              <div className="pt-4 border-t border-slate-100 mt-6 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddMemberModal(false)}
-                  className="w-1/2 bg-slate-100 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-200 transition text-xs border border-slate-200"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="w-1/2 bg-indigo-600 text-white p-3 rounded-lg font-bold hover:bg-indigo-700 transition text-xs shadow-sm"
-                >
-                  Add Member
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Disburse Group Loan Modal */}
-      {showDisburseLoanModal && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">Disburse Group Loan</h2>
-                <p className="text-xs text-slate-500 mt-1">Issue a joint-liability loan to the {selectedGroup.name}</p>
-              </div>
-              <button onClick={() => setShowDisburseLoanModal(false)} className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200">
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <form onSubmit={handleDisburseLoanSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-1">Loan Principal Amount (₹)</label>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 font-bold">₹</span>
-                    <input 
-                      type="number" required min="1000" step="500"
-                      placeholder="e.g. 50000"
-                      className="w-full pl-8 pr-4 py-2.5 border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      value={disburseLoanFormData.amount} onChange={e => setDisburseLoanFormData({...disburseLoanFormData, amount: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Payment Frequency</label>
-                    <select
-                      className="w-full p-2.5 border border-slate-300 rounded-lg bg-white text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      value={disburseLoanFormData.paymentFrequency} onChange={e => setDisburseLoanFormData({...disburseLoanFormData, paymentFrequency: e.target.value})}
-                    >
-                      <option value="Monthly">Monthly</option>
-                      <option value="Weekly">Weekly (Kist)</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">
-                      Duration {disburseLoanFormData.paymentFrequency === 'Weekly' ? '(Weeks)' : '(Months)'}
-                    </label>
-                    <input 
-                      type="number" required min="1"
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      value={disburseLoanFormData.duration} onChange={e => setDisburseLoanFormData({...disburseLoanFormData, duration: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Annual Interest (%)</label>
-                    <div className="relative">
-                      <input 
-                        type="number" required min="0" max="100" step="0.5"
-                        className="w-full pr-8 pl-3 py-2.5 border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                        value={disburseLoanFormData.interestRate} onChange={e => setDisburseLoanFormData({...disburseLoanFormData, interestRate: e.target.value})}
-                      />
-                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 font-bold">%</span>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Disbursement Date</label>
-                    <input 
-                      type="date" required
-                      className="w-full p-2.5 border border-slate-300 rounded-lg text-slate-800 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                      value={disburseLoanFormData.startDate} onChange={e => setDisburseLoanFormData({...disburseLoanFormData, startDate: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 mt-6 flex gap-3">
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
                   <button 
                     type="button" 
-                    onClick={() => setShowDisburseLoanModal(false)}
-                    className="w-1/2 bg-slate-100 text-slate-700 p-2.5 rounded-lg font-bold hover:bg-slate-200 transition text-sm"
+                    onClick={() => setShowModal(false)}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
                   >
                     Cancel
                   </button>
                   <button 
                     type="submit" 
-                    className="w-1/2 bg-emerald-600 text-white p-2.5 rounded-lg font-bold hover:bg-emerald-700 transition text-sm shadow-sm"
+                    disabled={loading}
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
                   >
-                    Disburse
+                    {loading ? 'Creating Account...' : 'Disburse Profile Registration'}
                   </button>
                 </div>
               </form>
@@ -1875,276 +1433,524 @@ const Customers = () => {
         </div>
       )}
 
-      {/* Weekly Collection Sheet & Worksheet Modal */}
-      {showCollectionModal && collectionSheetData && (
-        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-50 p-4 animate-fade-in overflow-y-auto no-print">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl overflow-hidden flex flex-col my-8 max-h-[90vh] print:shadow-none print:my-0 print:max-h-full print:rounded-none">
-            
-            {/* Inline print style sheet */}
-            <style>{`
-              @media print {
-                body > div {
-                  display: none !important;
-                }
-                #root {
-                  display: none !important;
-                }
-                .fixed.inset-0.z-50 {
-                  display: block !important;
-                  position: absolute !important;
-                  left: 0 !important;
-                  top: 0 !important;
-                  width: 100% !important;
-                  height: auto !important;
-                  overflow: visible !important;
-                  background: white !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                }
-                .fixed.inset-0.z-50 * {
-                  visibility: visible !important;
-                }
-                .no-print, .print\\:hidden, button, svg {
-                  display: none !important;
-                }
-                table {
-                  width: 100% !important;
-                  border-collapse: collapse !important;
-                  page-break-inside: auto !important;
-                }
-                tr {
-                  page-break-inside: avoid !important;
-                  page-break-after: auto !important;
-                }
-              }
-            `}</style>
-
-            {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50 print:bg-white print:border-b-2 print:border-slate-800">
-              <div>
-                <h2 className="text-xl font-extrabold text-slate-800 print:text-2xl print:font-black flex items-center gap-2">
-                  <Layers className="text-indigo-600 print:hidden" size={24} />
-                  <span>Weekly Collection Worksheet</span>
-                </h2>
-                <p className="text-xs text-slate-500 mt-1 print:text-slate-700">
-                  Roster Group: <strong className="text-indigo-600 print:text-slate-900">{collectionSheetData.groupName}</strong> | Date: {new Date().toLocaleDateString()}
-                </p>
+      {/* Unified Group Builder Modal */}
+      {showGroupModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Unified Customer Group Builder</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Construct a Joint Liability Group and register any new members concurrently</p>
               </div>
-              <div className="flex gap-2 print:hidden">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg font-bold text-xs border border-indigo-100 flex items-center gap-1 shadow-sm transition"
-                >
-                  <Printer size={14} /> Print Sheet
-                </button>
-                <button 
-                  onClick={() => { setShowCollectionModal(false); setCollectionSheetData(null); }} 
-                  className="text-slate-400 hover:text-slate-600 bg-white p-1 rounded-lg border border-slate-200"
-                >
-                  <X size={24} />
-                </button>
-              </div>
+              <button 
+                onClick={() => setShowGroupModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
             </div>
-
-            {/* Modal Body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6 print:overflow-visible print:p-0">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 print:bg-white print:border-none print:p-0">
-                <div className="text-xs text-slate-500 font-bold uppercase tracking-wider mb-2 print:text-slate-700 print:mb-4">
-                  Active Installments & Ledger Split
+            
+            <div className="p-6 flex-1 overflow-y-auto">
+              {groupError && (
+                <div className="mb-4 p-3.5 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <AlertCircle size={14} />
+                  <span>{groupError}</span>
                 </div>
-                
-                {collectionSheetData.activeLoans.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 font-semibold italic bg-white rounded-lg border border-slate-200">
-                    No active loans with pending installments found for this group.
+              )}
+              {groupSuccess && (
+                <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-150 text-emerald-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
+                  <CheckCircle2 size={14} />
+                  <span>{groupSuccess}</span>
+                </div>
+              )}
+              
+              <form onSubmit={handleCreateGroup} className="space-y-6">
+                {/* Group Details */}
+                <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-4 text-left">
+                  <h3 className="text-xs font-black text-violet-600 uppercase tracking-widest flex items-center gap-1.5">
+                    <Layers size={14} /> Basic Group Details
+                  </h3>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Group Recipient Name *</label>
+                    <input 
+                      type="text" required
+                      placeholder="e.g. Radhe Mahila Bachat Gat / Bharat Sangha #5"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-850 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-xs font-semibold"
+                      value={groupName} onChange={e => setGroupName(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Group Members List builder */}
+                <div className="space-y-4 text-left">
+                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                    <h3 className="text-xs font-black text-slate-850 uppercase tracking-widest flex items-center gap-1.5">
+                      <Users size={14} className="text-violet-600" /> Group Members Roster
+                    </h3>
+                    <button 
+                      type="button" 
+                      onClick={handleAddMemberRow}
+                      className="bg-violet-50 hover:bg-violet-100 text-violet-700 px-3 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-bold border border-violet-100 shadow-xs cursor-pointer uppercase tracking-wider"
+                    >
+                      <Plus size={12} /> Add Member Row
+                    </button>
+                  </div>
+
+                  <div className="space-y-5">
+                    {groupMembers.map((member, index) => (
+                      <div key={index} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/20 relative space-y-4 shadow-sm animate-scale-up">
+                        {/* Member index & Remove row button */}
+                        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Member Profile #{index + 1}</span>
+                          {groupMembers.length > 1 && (
+                            <button 
+                              type="button" 
+                              onClick={() => handleRemoveMemberRow(index)}
+                              className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
+                              title="Delete Member Row"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Existing vs New radio picker */}
+                        <div className="flex gap-4 items-center">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Borrower Origin:</label>
+                          <div className="flex gap-4">
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                              <input 
+                                type="radio" 
+                                className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                                checked={member.isExisting === true}
+                                onChange={() => handleMemberChange(index, 'isExisting', true)}
+                              />
+                              Select Existing Customer
+                            </label>
+                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                              <input 
+                                type="radio" 
+                                className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                                checked={member.isExisting === false}
+                                onChange={() => handleMemberChange(index, 'isExisting', false)}
+                              />
+                              Register New Borrower
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Roster fields container */}
+                        {member.isExisting ? (
+                          <div className="bg-white p-4 rounded-xl border border-slate-150">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Existing Customer Profile *</label>
+                            <select 
+                              required
+                              className="w-full p-2.5 border border-slate-355 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium transition-all"
+                              value={member.customerId} 
+                              onChange={e => handleMemberChange(index, 'customerId', e.target.value)}
+                            >
+                              <option value="">Select a registered borrower</option>
+                              {customers.map(c => (
+                                <option key={c._id} value={c._id}>
+                                  {c.name} (📞 {c.phone} | UIDAI Aadhaar: {c.aadhaarNumber || 'None'} | Rating: {c.creditGrade})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          // Render full registration form in builder
+                          renderCustomerFieldsForm(member, (val) => {
+                            const updated = [...groupMembers];
+                            updated[index] = { ...member, ...val };
+                            setGroupMembers(updated);
+                          })
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowGroupModal(false)}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={groupLoading}
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
+                  >
+                    {groupLoading ? 'Building Group...' : 'Save & Disburse Joint Group'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Details Modal */}
+      {showEditMemberModal && editingCustomer && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Edit Borrower Profile</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Modify individual fields for <strong className="text-violet-600">{editingCustomer.name}</strong></p>
+              </div>
+              <button 
+                onClick={() => { setShowEditMemberModal(false); setEditingCustomer(null); }} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 flex-1 overflow-y-auto">
+              <form onSubmit={handleEditCustomerSubmit} className="space-y-6">
+                {renderCustomerFieldsForm(editCustomerFormData, setEditCustomerFormData)}
+
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                  <button 
+                    type="button" 
+                    onClick={() => { setShowEditMemberModal(false); setEditingCustomer(null); }}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Save Profile Changes
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Member to Group Modal */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Add Group Member</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Integrate a borrower into group: <strong className="text-violet-600">{selectedGroup.name}</strong></p>
+              </div>
+              <button 
+                onClick={() => setShowAddMemberModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6 flex-1 overflow-y-auto">
+              <form onSubmit={handleAddMemberSubmit} className="space-y-6">
+                {/* Radio selection */}
+                <div className="flex gap-6 items-center justify-start text-left border-b border-slate-100 pb-3">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Borrower Type:</label>
+                  <div className="flex gap-4">
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                      <input 
+                        type="radio" 
+                        className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                        checked={addMemberType === 'existing'}
+                        onChange={() => setAddMemberType('existing')}
+                      />
+                      Existing Profile
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                      <input 
+                        type="radio" 
+                        className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                        checked={addMemberType === 'new'}
+                        onChange={() => setAddMemberType('new')}
+                      />
+                      Register New Profile
+                    </label>
+                  </div>
+                </div>
+
+                {addMemberType === 'existing' ? (
+                  <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 text-left">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Registered Customer Profile *</label>
+                    <select 
+                      required
+                      className="w-full p-3 border border-slate-355 rounded-xl text-slate-800 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-xs font-semibold"
+                      value={addMemberCustomerId} 
+                      onChange={e => setAddMemberCustomerId(e.target.value)}
+                    >
+                      <option value="">Choose a registered borrower</option>
+                      {availableExistingCustomers.map(c => (
+                        <option key={c._id} value={c._id}>
+                          {c.name} (📞 {c.phone} | Aadhaar: {c.aadhaarNumber || 'None'} | Grade: {c.creditGrade})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse bg-white rounded-lg border border-slate-200 print:border-slate-800 print:text-[11px]">
-                      <thead>
-                        <tr className="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider print:bg-slate-100 print:border-b-2 print:border-slate-800">
-                          <th className="px-4 py-3 print:px-2 print:py-1">Group Member</th>
-                          {collectionSheetData.activeLoans.map((loan, idx) => (
-                            <th key={loan.loanId} className="px-4 py-3 border-l border-slate-200 print:px-2 print:py-1">
-                              <div>Loan #{idx + 1} (Principal: ₹{loan.amount.toLocaleString()})</div>
-                              <div className="text-[10px] text-slate-400 font-normal normal-case mt-0.5 print:text-slate-700">
-                                Next Due: ₹{loan.nextInstallment.totalDue.toLocaleString()} ({loan.paymentFrequency})
-                              </div>
-                              <div className="text-[10px] text-indigo-600 font-extrabold uppercase mt-0.5 print:text-slate-900">
-                                Share: ₹{loan.nextInstallment.sharePerMember.toLocaleString()}/member
-                              </div>
+                  renderCustomerFieldsForm(addMemberFormData, setAddMemberFormData)
+                )}
+
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowAddMemberModal(false)}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Confirm Member Addition
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disburse Group Loan Modal */}
+      {showDisburseLoanModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight">Disburse Group Loan</h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Issue credit capital under joint liability to group: <strong className="text-violet-600">{selectedGroup.name}</strong></p>
+              </div>
+              <button 
+                onClick={() => setShowDisburseLoanModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <form onSubmit={handleDisburseLoanSubmit} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Principal Amount (₹) *</label>
+                    <input 
+                      type="number" required min="1"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                      value={disburseLoanFormData.amount} 
+                      onChange={e => setDisburseLoanFormData({...disburseLoanFormData, amount: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Interest (% p.a.) *</label>
+                    <input 
+                      type="number" required min="0" step="0.1"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                      value={disburseLoanFormData.interestRate} 
+                      onChange={e => setDisburseLoanFormData({...disburseLoanFormData, interestRate: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-left">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">EMI Frequency</label>
+                    <select
+                      className="w-full p-2.5 border border-slate-355 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white"
+                      value={disburseLoanFormData.paymentFrequency}
+                      onChange={e => setDisburseLoanFormData({...disburseLoanFormData, paymentFrequency: e.target.value})}
+                    >
+                      <option value="Monthly">Monthly</option>
+                      <option value="Weekly">Weekly (Kist)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Disbursement Date</label>
+                    <input 
+                      type="date"
+                      className="w-full p-2.5 border border-slate-350 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                      value={disburseLoanFormData.startDate} 
+                      onChange={e => setDisburseLoanFormData({...disburseLoanFormData, startDate: e.target.value})}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-left">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Capital Tenure ({disburseLoanFormData.paymentFrequency === 'Weekly' ? 'Weeks' : 'Months'}) *
+                  </label>
+                  <input 
+                    type="number" required min="1"
+                    className="w-full p-2.5 border border-slate-350 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-violet-500 focus:outline-none"
+                    value={disburseLoanFormData.duration} 
+                    onChange={e => setDisburseLoanFormData({...disburseLoanFormData, duration: e.target.value})}
+                  />
+                </div>
+
+                <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowDisburseLoanModal(false)}
+                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="w-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-emerald-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                  >
+                    Issue Loan Capital
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Collection Sheet Modal */}
+      {showCollectionModal && collectionSheetData && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
+                  <Layers size={20} className="text-violet-600" /> Digital Collection Sheet
+                </h2>
+                <p className="text-xs text-slate-500 mt-1 font-semibold">Bulk recover joint liability installments for group: <strong className="text-violet-600">{selectedGroup.name}</strong></p>
+              </div>
+              <button 
+                onClick={() => setShowCollectionModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            {/* Sheet Worksheet */}
+            <div className="p-6 flex-1 overflow-y-auto space-y-6">
+              {collectionSheetData.activeLoans.length === 0 ? (
+                <div className="bg-slate-50 p-8 rounded-2xl border border-dashed border-slate-350 text-center text-slate-500 text-sm font-semibold italic">
+                  This Joint Liability Group has no active outstanding loans requiring collections.
+                </div>
+              ) : (
+                <form onSubmit={handleCollectionSubmit} className="space-y-6">
+                  {/* Ledger Table */}
+                  <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+                    <table className="w-full text-left whitespace-nowrap border-collapse">
+                      <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-widest">
+                        <tr>
+                          <th className="px-6 py-4">Borrower Name</th>
+                          {collectionSheetData.activeLoans.map(loan => (
+                            <th key={loan.loanId} className="px-6 py-4">
+                              <span>Loan ₹{loan.amount.toLocaleString()}</span>
+                              <span className="text-[8px] text-slate-400 font-black block mt-1">EMI: ₹{loan.nextInstallment.emiAmount} | Share: ₹{loan.nextInstallment.sharePerMember}</span>
                             </th>
                           ))}
-                          <th className="px-4 py-3 border-l border-slate-200 text-right print:px-2 print:py-1">Member Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100 print:divide-slate-800">
-                        {collectionSheetData.members.map((member) => {
-                          let memberRowTotal = 0;
-                          return (
-                            <tr key={member._id} className="hover:bg-slate-50/50 transition">
-                              <td className="px-4 py-4 font-bold text-slate-800 print:px-2 print:py-1">
-                                <div>{member.name}</div>
-                                <div className="text-[10px] text-slate-400 font-normal print:text-slate-600">{member.phone}</div>
-                              </td>
-                              
-                              {collectionSheetData.activeLoans.map((loan) => {
-                                const isChecked = !!collectionCheckboxState[member._id]?.[loan.loanId];
-                                const share = loan.nextInstallment.sharePerMember;
-                                if (isChecked) {
-                                  memberRowTotal += share;
-                                }
-                                return (
-                                  <td key={loan.loanId} className="px-4 py-4 border-l border-slate-200 print:px-2 print:py-1">
-                                    <div className="flex items-center gap-3 print:justify-between">
-                                      <label className="flex items-center gap-2 cursor-pointer print:hidden">
-                                        <input
-                                          type="checkbox"
-                                          className="w-4 h-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
-                                          checked={isChecked}
-                                          onChange={() => handleCollectionCheckboxToggle(member._id, loan.loanId)}
-                                        />
-                                        <span className="font-extrabold text-slate-700 text-sm">₹{share.toLocaleString()}</span>
-                                      </label>
-                                      
-                                      {/* Print-only checkbox mark */}
-                                      <div className="hidden print:block font-bold">
-                                        <div className="border border-slate-800 w-4 h-4 rounded flex items-center justify-center text-[10px]">
-                                          {isChecked ? '✓' : ' '}
-                                        </div>
-                                      </div>
-                                      <div className="hidden print:block text-slate-800 font-bold">
-                                        ₹{share.toLocaleString()}
-                                      </div>
-
-                                      <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold ${
-                                        loan.nextInstallment.status === 'Overdue' 
-                                          ? 'bg-red-50 text-red-700 border border-red-100' 
-                                          : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
-                                      }`}>
-                                        {loan.nextInstallment.status}
-                                      </span>
-                                    </div>
-                                  </td>
-                                );
-                              })}
-                              
-                              <td className="px-4 py-4 border-l border-slate-200 text-right font-black text-slate-800 text-sm print:px-2 print:py-1">
-                                ₹{memberRowTotal.toLocaleString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-
-                        {/* Summary Totals Row */}
-                        <tr className="bg-indigo-50/30 font-black border-t-2 border-indigo-200 print:bg-slate-50 print:border-t-2 print:border-slate-800">
-                          <td className="px-4 py-3 print:px-2 print:py-1">Expected Loan Installments:</td>
-                          {collectionSheetData.activeLoans.map((loan) => {
-                            const expectedTotal = loan.nextInstallment.totalDue;
-                            const collectedTotalForLoan = collectionSheetData.members.filter(member => 
-                              collectionCheckboxState[member._id]?.[loan.loanId]
-                            ).length * loan.nextInstallment.sharePerMember;
-                            
-                            return (
-                              <td key={loan.loanId} className="px-4 py-3 border-l border-slate-200 print:px-2 print:py-1">
-                                <div className="text-slate-800 text-[11px] font-extrabold">
-                                  Collected: <span className="text-emerald-700">₹{collectedTotalForLoan.toLocaleString()}</span>
-                                </div>
-                                <div className="text-slate-400 text-[9px] font-bold mt-0.5 print:text-slate-700">
-                                  Expected: ₹{expectedTotal.toLocaleString()}
-                                </div>
-                              </td>
-                            );
-                          })}
-                          <td className="px-4 py-3 border-l border-slate-200 text-right text-base text-indigo-900 print:px-2 print:py-1 print:text-[11px]">
-                            ₹{
-                              collectionSheetData.activeLoans.reduce((acc, loan) => {
-                                const collectedTotalForLoan = collectionSheetData.members.filter(member => 
-                                  collectionCheckboxState[member._id]?.[loan.loanId]
-                                ).length * loan.nextInstallment.sharePerMember;
-                                return acc + collectedTotalForLoan;
-                              }, 0).toLocaleString()
-                            }
-                          </td>
-                        </tr>
+                      <tbody className="divide-y divide-slate-100">
+                        {collectionSheetData.members.map(member => (
+                          <tr key={member._id} className="hover:bg-slate-50/50 transition">
+                            <td className="px-6 py-4 font-black text-slate-800 text-xs flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-black text-[10px]">
+                                {member.name ? member.name.charAt(0).toUpperCase() : 'M'}
+                              </div>
+                              {member.name}
+                            </td>
+                            {collectionSheetData.activeLoans.map(loan => {
+                              const isChecked = !!collectionCheckboxState[member._id]?.[loan.loanId];
+                              return (
+                                <td key={loan.loanId} className="px-6 py-4">
+                                  <label 
+                                    onClick={() => handleCollectionCheckboxToggle(member._id, loan.loanId)}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-extrabold select-none cursor-pointer w-fit transition-all duration-200 ${
+                                      isChecked 
+                                        ? 'bg-emerald-50 border-emerald-250 text-emerald-700' 
+                                        : 'bg-white border-slate-200 text-slate-400 hover:border-slate-350'
+                                    }`}
+                                  >
+                                    <input 
+                                      type="checkbox" 
+                                      className="sr-only"
+                                      checked={isChecked}
+                                      onChange={() => {}} // Controlled by label click
+                                    />
+                                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${
+                                      isChecked ? 'bg-emerald-600 border-emerald-600 text-white' : 'border-slate-300 bg-white'
+                                    }`}>
+                                      {isChecked && <Check size={10} strokeWidth={4} />}
+                                    </span>
+                                    <span>₹{loan.nextInstallment.sharePerMember.toLocaleString()} Paid</span>
+                                  </label>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                )}
-              </div>
 
-              {/* Dynamic Totals Tracker Card */}
-              {collectionSheetData.activeLoans.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-900 text-white p-5 rounded-xl shadow-sm border border-slate-800 print:bg-white print:border-2 print:border-slate-800 print:text-slate-900 print:p-4">
-                  <div>
-                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider print:text-slate-500">Group Weekly Target</span>
-                    <h3 className="text-xl font-black mt-1 print:text-lg">
-                      ₹{collectionSheetData.activeLoans.reduce((sum, l) => sum + l.nextInstallment.totalDue, 0).toLocaleString()}
-                    </h3>
+                  {/* Summary Board */}
+                  <div className="bg-slate-50/60 p-5 rounded-2xl border border-slate-150 space-y-4 text-left">
+                    <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest">Collections Recovery Summary</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {collectionSheetData.activeLoans.map(loan => {
+                        const paidMembersCount = collectionSheetData.members.filter(m => 
+                          collectionCheckboxState[m._id]?.[loan.loanId]
+                        ).length;
+                        const recoveryAmount = paidMembersCount * loan.nextInstallment.sharePerMember;
+                        const totalEMI = loan.nextInstallment.emiAmount;
+
+                        return (
+                          <div key={loan.loanId} className="bg-white p-4 rounded-xl border border-slate-150 shadow-xs text-left space-y-2">
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Capital Principal: ₹{loan.amount.toLocaleString()}</span>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-650 font-bold">Recovered Amount:</span>
+                              <span className="font-extrabold text-emerald-600">₹{recoveryAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-650 font-bold">Collection efficiency:</span>
+                              <span className="font-extrabold text-slate-800">{paidMembersCount} / {collectionSheetData.members.length} members</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1.5">
+                              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${(paidMembersCount / collectionSheetData.members.length) * 100}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="border-t border-slate-800 md:border-t-0 md:border-l md:pl-6 pt-3 md:pt-0 print:border-slate-300">
-                    <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider print:text-emerald-600">Collected Amount</span>
-                    <h3 className="text-xl font-black mt-1 text-emerald-400 print:text-emerald-600 print:text-lg">
-                      ₹{
-                        collectionSheetData.activeLoans.reduce((sum, loan) => {
-                          const count = collectionSheetData.members.filter(member => 
-                            collectionCheckboxState[member._id]?.[loan.loanId]
-                          ).length;
-                          return sum + (count * loan.nextInstallment.sharePerMember);
-                        }, 0).toLocaleString()
-                      }
-                    </h3>
+
+                  {/* Submit Block */}
+                  <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
+                    <button 
+                      type="button" 
+                      onClick={() => setShowCollectionModal(false)}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      disabled={submittingCollection}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
+                    >
+                      {submittingCollection ? 'Submitting Ledger...' : 'Commit Collections Recovery'}
+                    </button>
                   </div>
-                  <div className="border-t border-slate-800 md:border-t-0 md:border-l md:pl-6 pt-3 md:pt-0 print:border-slate-300">
-                    <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider print:text-amber-600">Outstanding Balance</span>
-                    <h3 className="text-xl font-black mt-1 text-amber-400 print:text-amber-600 print:text-lg">
-                      ₹{
-                        Math.max(0, 
-                          collectionSheetData.activeLoans.reduce((sum, l) => sum + l.nextInstallment.totalDue, 0) -
-                          collectionSheetData.activeLoans.reduce((sum, loan) => {
-                            const count = collectionSheetData.members.filter(member => 
-                              collectionCheckboxState[member._id]?.[loan.loanId]
-                            ).length;
-                            return sum + (count * loan.nextInstallment.sharePerMember);
-                          }, 0)
-                        ).toLocaleString()
-                      }
-                    </h3>
-                  </div>
-                </div>
+                </form>
               )}
-
-              {/* Print-Only Signature Section */}
-              <div className="hidden print:grid print:grid-cols-3 print:gap-8 print:pt-16 print:text-[11px] print:font-bold">
-                <div className="text-center border-t border-slate-800 pt-2">
-                  Field Officer Signature
-                </div>
-                <div className="text-center border-t border-slate-800 pt-2">
-                  Group Leader Signature
-                </div>
-                <div className="text-center border-t border-slate-800 pt-2">
-                  Branch Manager Signature
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Actions */}
-            <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-3 print:hidden">
-              <button 
-                type="button" 
-                onClick={() => { setShowCollectionModal(false); setCollectionSheetData(null); }}
-                className="w-1/2 bg-slate-200 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-300 transition text-xs border border-slate-300"
-              >
-                Close Worksheet
-              </button>
-              <button 
-                type="button" 
-                disabled={submittingCollection || collectionSheetData.activeLoans.length === 0}
-                onClick={handleCollectionSubmit}
-                className="w-1/2 bg-emerald-600 text-white p-3 rounded-lg font-bold hover:bg-emerald-700 transition disabled:bg-emerald-400 text-xs shadow-sm"
-              >
-                {submittingCollection ? 'Recording Bulk Collections...' : 'Submit Group Collection'}
-              </button>
             </div>
           </div>
         </div>

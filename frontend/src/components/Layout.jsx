@@ -3,7 +3,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from './Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, ShieldAlert, Award } from 'lucide-react';
 
 const Layout = () => {
   const { user } = useContext(AuthContext);
@@ -14,22 +14,54 @@ const Layout = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
+      {/* Sidebar Navigation */}
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <div className="flex-1 md:ml-64 flex flex-col w-full transition-all duration-300">
-        <header className="bg-white shadow-sm h-16 flex items-center px-4 md:px-8 border-b gap-4">
-          <button 
-            className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 rounded-lg"
-            onClick={() => setIsSidebarOpen(true)}
-          >
-            <Menu size={24} />
-          </button>
-          <h2 className="text-xl font-semibold text-slate-800">
-            {user?.role === 'Admin' ? 'Admin Portal' : 'Employee Portal'}
-          </h2>
+      
+      {/* Main Content Area */}
+      <div className="flex-1 md:ml-64 flex flex-col w-full min-h-screen transition-all duration-300">
+        
+        {/* Glassmorphic Sticky Header */}
+        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-100 h-16 flex items-center justify-between px-4 md:px-8 shadow-sm shadow-slate-100/40">
+          <div className="flex items-center gap-4">
+            <button 
+              className="md:hidden p-2 -ml-2 text-slate-600 hover:bg-slate-100 active:scale-95 rounded-xl transition-all"
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open Sidebar"
+            >
+              <Menu size={22} />
+            </button>
+            
+            {/* Title / Breadcrumb Context */}
+            <div className="flex flex-col">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider leading-none">ZenLoan Platform</span>
+              <h2 className="text-base font-bold text-slate-800 mt-1">
+                {user?.role === 'Admin' ? 'Administrator Workspace' : 'Field Operations Desk'}
+              </h2>
+            </div>
+          </div>
+          
+          {/* Top Navbar Badges */}
+          <div className="flex items-center gap-3">
+            {user?.role === 'Admin' ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-violet-50 text-violet-700 border border-violet-100 shadow-sm shadow-violet-500/5">
+                <Award size={13} className="text-violet-500 animate-pulse" />
+                Admin Authority
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm shadow-emerald-500/5">
+                <ShieldAlert size={13} className="text-emerald-500" />
+                Collector Console
+              </span>
+            )}
+          </div>
         </header>
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-[100vw]">
-          <Outlet />
+        
+        {/* Main Content Container with elegant padding and max viewport width protection */}
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-[100vw] bg-gradient-to-b from-slate-50 to-slate-100/50">
+          <div className="max-w-7xl mx-auto animate-slide-up">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
