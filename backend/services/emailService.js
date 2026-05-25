@@ -27,7 +27,25 @@ const sendEmail = async ({ to, subject, text, html }) => {
     }
   }
 
-  // 2. Check for Brevo HTTP API (Bypasses SMTP port blocking on Render)
+  // 2. Check for Google Apps Script Web App (Bypasses SMTP port blocking on Render and sends from your Gmail)
+  if (process.env.GOOGLE_SCRIPT_URL) {
+    try {
+      console.log('Sending email via Google Apps Script Web App...');
+      const response = await axios.post(process.env.GOOGLE_SCRIPT_URL, {
+        to: to,
+        subject: subject,
+        body: text,
+        html: html
+      });
+      console.log('Email sent successfully via Google Apps Script Web App');
+      return response.data;
+    } catch (apiError) {
+      console.error('Error sending email via Google Apps Script:', apiError.message);
+      throw new Error(`Google Apps Script Error: ${apiError.message}`);
+    }
+  }
+
+  // 3. Check for Brevo HTTP API (Bypasses SMTP port blocking on Render)
   if (process.env.BREVO_API_KEY) {
     try {
       console.log('Sending email via Brevo HTTP API...');
