@@ -2,6 +2,12 @@ const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const dns = require('dns');
+
+// Prefer IPv4 resolution to prevent ENETUNREACH errors on environments like Render that lack IPv6 outbound routing
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 dotenv.config();
 
