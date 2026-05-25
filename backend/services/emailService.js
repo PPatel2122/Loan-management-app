@@ -1,7 +1,60 @@
 const nodemailer = require('nodemailer');
 const dns = require('dns').promises;
+const axios = require('axios');
 
 const sendEmail = async ({ to, subject, text, html }) => {
+  // 1. Check for Resend HTTP API (Bypasses SMTP port blocking on Render)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      console.log('Sending email via Resend HTTP API...');
+      const response = await axios.post('https://api.resend.com/emails', {
+        from: process.env.SMTP_FROM || 'onboarding@resend.dev',
+        to: [to],
+        subject: subject,
+        html: html || text
+      }, {
+        headers: {
+          'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Email sent successfully via Resend HTTP API:', response.data);
+      return response.data;
+    } catch (apiError) {
+      const errMsg = apiError.response?.data?.message || apiError.message;
+      console.error('Error sending email via Resend API:', errMsg);
+      throw new Error(`Resend API Error: ${errMsg}`);
+    }
+  }
+
+  // 2. Check for Brevo HTTP API (Bypasses SMTP port blocking on Render)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      console.log('Sending email via Brevo HTTP API...');
+      const response = await axios.post('https://api.brevo.com/v3/smtp/email', {
+        sender: { 
+          name: process.env.SMTP_FROM_NAME || "ZenLoan Verification", 
+          email: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER || "info@zenloan.com" 
+        },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html || text
+      }, {
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('Email sent successfully via Brevo HTTP API:', response.data);
+      return response.data;
+    } catch (apiError) {
+      const errMsg = apiError.response?.data?.message || apiError.message;
+      console.error('Error sending email via Brevo API:', errMsg);
+      throw new Error(`Brevo API Error: ${errMsg}`);
+    }
+  }
+
+  // 3. Fallback to standard SMTP if no HTTP APIs are specified but SMTP config is present
   const hasConfig = process.env.SMTP_USER && process.env.SMTP_PASS;
 
   if (!hasConfig) {
