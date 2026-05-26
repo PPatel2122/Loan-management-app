@@ -12,7 +12,7 @@ const calculateEMI = (principal, annualRate, duration, frequency = 'Monthly') =>
   return emi;
 };
 
-// @desc    Create a new loan
+// @desc    Create a new loan (starts as Pending)
 // @route   POST /api/loans
 // @access  Private
 const createLoan = async (req, res) => {
@@ -42,32 +42,10 @@ const createLoan = async (req, res) => {
       emiAmount: Math.round(emiAmount * 100) / 100,
       totalAmount: Math.round(totalAmount * 100) / 100,
       startDate: sDate,
-      status: 'Active'
+      status: 'Pending'
     };
 
     const loan = await Loan.create(loanData);
-
-    // Generate Installments
-    const installmentsToInsert = [];
-    for (let i = 1; i <= duration; i++) {
-      const dueDate = new Date(sDate);
-      if (freq === 'Weekly') {
-        dueDate.setDate(dueDate.getDate() + i * 7);
-      } else {
-        dueDate.setMonth(dueDate.getMonth() + i);
-      }
-
-      installmentsToInsert.push({
-        loanId: loan._id,
-        dueDate,
-        amount: Math.round(emiAmount * 100) / 100,
-        remainingAmount: Math.round(emiAmount * 100) / 100,
-        status: 'Pending',
-        penalty: 0
-      });
-    }
-
-    await Installment.insertMany(installmentsToInsert);
 
     res.status(201).json(loan);
   } catch (error) {
@@ -140,4 +118,81 @@ const deleteLoan = async (req, res) => {
   }
 };
 
-module.exports = { createLoan, getLoans, getLoanById, deleteLoan };
+// @desc    Approve a loan request (creates installments and marks Active)
+// @route   PUT /api/loans/:id/approve
+// @access  Private
+const approveLoan = async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Not authorized as admin' });
+    }
+
+    const loan = await Loan.findById(req.params.id);
+    if (!loan) return res.status(404).json({ message: 'Loan not found' });
+
+    if (loan.status !== 'Pending') {
+      return res.status(400).json({ message: 'Loan is not in Pending status' });
+    }
+
+    loan.status = 'Active';
+    await loan.save();
+
+    // Generate Installments
+    const duration = loan.duration;
+    const freq = loan.paymentFrequency || 'Monthly';
+    const emiAmount = loan.emiAmount;
+    const sDate = loan.startDate || new Date();
+
+    const installmentsToInsert = [];
+    for (let i = 1; i <= duration; i++) {
+      const dueDate = new Date(sDate);
+      if (freq === 'Weekly') {
+        dueDate.setDate(dueDate.getDate() + i * 7);
+      } else {
+        dueDate.setMonth(dueDate.getMonth() + i);
+      }
+
+      installmentsToInsert.push({
+        loanId: loan._id,
+        dueDate,
+        amount: Math.round(emiAmount * 100) / 100,
+        remainingAmount: Math.round(emiAmount * 100) / 100,
+        status: 'Pending',
+        penalty: 0
+      });
+    }
+
+    await Installment.insertMany(installmentsToInsert);
+
+    res.json(loan);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Reject a loan request
+// @route   PUT /api/loans/:id/reject
+// @access  Private
+const rejectLoan = async (req, res) => {
+  try {
+    if (req.user.role !== 'Admin') {
+      return res.status(403).json({ message: 'Not authorized as admin' });
+    }
+
+    const loan = await Loan.findById(req.params.id);
+    if (!loan) return res.status(404).json({ message: 'Loan not found' });
+
+    if (loan.status !== 'Pending') {
+      return res.status(400).json({ message: 'Loan is not in Pending status' });
+    }
+
+    loan.status = 'Rejected';
+    await loan.save();
+
+    res.json(loan);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createLoan, getLoans, getLoanById, deleteLoan, approveLoan, rejectLoan };

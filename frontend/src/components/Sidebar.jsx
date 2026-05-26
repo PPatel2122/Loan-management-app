@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, CreditCard, LogOut, X, UserCog, CheckSquare, Layers, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, LogOut, X, UserCog, CheckSquare, Layers, Shield, Settings } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -14,7 +14,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Completed Loans', path: '/completed-loans', icon: <CheckSquare size={18} /> },
     ...(user?.role === 'Admin' ? [
       { name: 'Staff Management', path: '/admins', icon: <UserCog size={18} /> },
-      { name: 'Collector Assignments', path: '/assignments', icon: <Layers size={18} /> }
+      { name: 'Collector Assignments', path: '/assignments', icon: <Layers size={18} /> },
+      { name: 'System Settings', path: '/settings', icon: <Settings size={18} /> }
     ] : []),
   ];
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
 import { 
@@ -1512,6 +1513,13 @@ const Customers = () => {
                             <td className="px-6 py-4 text-slate-500 text-xs font-semibold max-w-xs truncate">{c.address}</td>
                             <td className="px-6 py-4 text-right" onClick={e => e.stopPropagation()}>
                               <div className="flex justify-end gap-1.5">
+                                <Link 
+                                  to={`/customers/${c._id}`}
+                                  className="text-indigo-750 hover:bg-indigo-50 p-1.5 rounded-lg transition border border-transparent hover:border-indigo-100 cursor-pointer"
+                                  title="View Full Profile"
+                                >
+                                  <ChevronRight size={15} />
+                                </Link>
                                 <button 
                                   onClick={() => handleOpenEditCustomerModal(c)}
                                   className="text-violet-750 hover:bg-violet-50 p-1.5 rounded-lg transition border border-transparent hover:border-violet-100 cursor-pointer"

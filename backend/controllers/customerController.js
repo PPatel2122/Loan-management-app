@@ -9,7 +9,7 @@ const addCustomer = async (req, res) => {
     name, phone, address, fatherName, motherName, spouseName, 
     childrenNames, totalChildren, aadhaarNumber, occupation, 
     monthlyIncome, homeType, permanentAddress, assets,
-    customerPhoto, aadhaarPhoto
+    customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
   } = req.body;
   try {
     let customer = await Customer.findOne({ phone });
@@ -20,7 +20,7 @@ const addCustomer = async (req, res) => {
       name, phone, address, fatherName, motherName, spouseName, 
       childrenNames, totalChildren, aadhaarNumber, occupation, 
       monthlyIncome, homeType, permanentAddress, assets,
-      customerPhoto, aadhaarPhoto
+      customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
     });
     res.status(201).json(customer);
   } catch (error) {
@@ -66,6 +66,23 @@ const getCustomerById = async (req, res) => {
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
     const custObj = customer.toObject();
     custObj.riskAnalysis = await calculateRiskScore(custObj);
+
+    // Fetch related groups, loans and collections/installments
+    const Group = require('../models/Group');
+    const Loan = require('../models/Loan');
+    const Installment = require('../models/Installment');
+
+    const customerGroups = await Group.find({ members: customer._id });
+    custObj.groups = customerGroups;
+
+    const groupIds = customerGroups.map(g => g._id);
+    const customerLoans = await Loan.find({ groupId: { $in: groupIds } }).populate('groupId', 'name');
+    custObj.loans = customerLoans;
+
+    const loanIds = customerLoans.map(l => l._id);
+    const customerInstallments = await Installment.find({ loanId: { $in: loanIds } }).sort({ dueDate: 1 });
+    custObj.installments = customerInstallments;
+
     res.json(custObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -95,7 +112,7 @@ const updateCustomer = async (req, res) => {
     name, phone, address, fatherName, motherName, spouseName, 
     childrenNames, totalChildren, aadhaarNumber, occupation, 
     monthlyIncome, homeType, permanentAddress, assets, isVerified,
-    customerPhoto, aadhaarPhoto
+    customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
   } = req.body;
   try {
     const customer = await Customer.findById(req.params.id);
@@ -124,6 +141,9 @@ const updateCustomer = async (req, res) => {
     if (isVerified !== undefined) customer.isVerified = isVerified;
     if (customerPhoto !== undefined) customer.customerPhoto = customerPhoto;
     if (aadhaarPhoto !== undefined) customer.aadhaarPhoto = aadhaarPhoto;
+    if (guarantorName !== undefined) customer.guarantorName = guarantorName;
+    if (guarantorPhone !== undefined) customer.guarantorPhone = guarantorPhone;
+    if (guarantorRelation !== undefined) customer.guarantorRelation = guarantorRelation;
 
     await customer.save();
     res.json(customer);

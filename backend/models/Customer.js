@@ -17,7 +17,11 @@ const customerSchema = new mongoose.Schema({
   assets: { type: String, default: '' },
   customerPhoto: { type: String, default: '' },
   aadhaarPhoto: { type: String, default: '' },
+  guarantorName: { type: String, default: '' },
+  guarantorPhone: { type: String, default: '' },
+  guarantorRelation: { type: String, default: '' },
   isVerified: { type: Boolean, default: true }
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', customerSchema);

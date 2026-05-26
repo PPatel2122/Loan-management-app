@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users, IndianRupee, Landmark, History, Coins, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users, IndianRupee, Landmark, History, Coins, X, Printer } from 'lucide-react';
 
 const LoanDetails = () => {
   const { id } = useParams();
@@ -10,6 +10,10 @@ const LoanDetails = () => {
   const [loading, setLoading] = useState(true);
   const [editingInst, setEditingInst] = useState(null);
   const [editFormData, setEditFormData] = useState({ remainingAmount: '', penalty: '', status: '' });
+  const [selectedReceipt, setSelectedReceipt] = useState(null);
+  const [receiptNumber, setReceiptNumber] = useState('');
+  const [installmentNum, setInstallmentNum] = useState(0);
+
 
   useEffect(() => {
     fetchData();
@@ -25,6 +29,13 @@ const LoanDetails = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openReceiptModal = (inst, instNum) => {
+    const num = `REC-${id.substring(18).toUpperCase()}-${instNum}-${new Date(inst.paidDate || Date.now()).getFullYear()}`;
+    setReceiptNumber(num);
+    setInstallmentNum(instNum);
+    setSelectedReceipt(inst);
   };
 
   const markPaid = async (instId) => {
@@ -239,7 +250,16 @@ const LoanDetails = () => {
                               </button>
                             </>
                           ) : (
-                            <span className="text-emerald-600 text-xs font-black uppercase tracking-wider flex items-center gap-0.5 pr-2">✓ Settled</span>
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-emerald-600 text-xs font-black uppercase tracking-wider flex items-center gap-0.5 pr-2">✓ Settled</span>
+                              <button 
+                                onClick={() => openReceiptModal(inst, idx + 1)}
+                                className="text-violet-700 hover:bg-violet-50 p-1.5 rounded-lg border border-transparent hover:border-violet-100 transition cursor-pointer flex items-center gap-1 text-[10px] font-black uppercase tracking-wider"
+                                title="Generate Receipt"
+                              >
+                                <Printer size={13} /> Receipt
+                              </button>
+                            </div>
                           )}
                         </div>
                       </td>
@@ -320,8 +340,120 @@ const LoanDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Receipt Modal */}
+      {selectedReceipt && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in print:bg-white print:p-0 text-left">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col print:shadow-none print:border-none print:w-full">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50 print:hidden">
+              <h2 className="text-sm font-black text-slate-800 tracking-tight uppercase tracking-wider">Payment Receipt</h2>
+              <button 
+                onClick={() => setSelectedReceipt(null)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            {/* Printable Area */}
+            <div id="receipt-print-area" className="p-6 space-y-6 text-left text-slate-800 bg-white">
+              {/* Receipt Branding */}
+              <div className="text-center pb-4 border-b border-slate-100">
+                <h1 className="text-lg font-black tracking-tight text-slate-900">ZENLOAN MICROFINANCE</h1>
+                <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-1">Joint Liability Group Credit System</p>
+                <p className="text-[9px] text-slate-500 font-semibold mt-0.5">Assuring Rural Women Empowerment</p>
+              </div>
+
+              {/* Meta details */}
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">Receipt Number</span>
+                  <span className="font-extrabold text-slate-850">{receiptNumber}</span>
+                </div>
+                <div>
+                  <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">Paid Date</span>
+                  <span className="font-extrabold text-slate-850">
+                    {new Date(selectedReceipt.paidDate || Date.now()).toLocaleDateString('en-IN', {
+                      dateStyle: 'medium'
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Group particulars */}
+              <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5 text-xs">
+                <div>
+                  <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">JLG Recipient Group</span>
+                  <span className="font-extrabold text-slate-800">{loan.groupId?.name || 'Unknown Group'}</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-slate-200/60">
+                  <div>
+                    <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">EMI Installment</span>
+                    <span className="font-extrabold text-slate-700">#{installmentNum} of {loan.duration}</span>
+                  </div>
+                  <div>
+                    <span className="text-[8px] text-slate-400 font-black uppercase tracking-wider block">Guarantor Link</span>
+                    <span className="font-extrabold text-slate-700">Joint Liability</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment particulars */}
+              <div className="space-y-2 text-xs">
+                <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest pb-1 border-b border-slate-100">Ledger Statement</h4>
+                <div className="flex justify-between font-semibold text-slate-650">
+                  <span>Base Installment Amount</span>
+                  <span>₹{selectedReceipt.amount.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-slate-650">
+                  <span>Overdue Penalty Fines</span>
+                  <span className="text-rose-600">{selectedReceipt.penalty > 0 ? `+₹${selectedReceipt.penalty}` : '₹0'}</span>
+                </div>
+                <div className="flex justify-between font-black text-slate-900 pt-2 border-t border-slate-100 text-sm">
+                  <span>Total Collected</span>
+                  <span className="text-emerald-600">₹{(selectedReceipt.amount + (selectedReceipt.penalty || 0)).toLocaleString()}</span>
+                </div>
+              </div>
+
+              {/* Transaction Status Flag */}
+              <div className="flex items-center justify-center py-2.5 bg-emerald-50 border border-emerald-100 rounded-2xl gap-2 text-emerald-800">
+                <CheckCircle size={16} className="text-emerald-600 animate-pulse" />
+                <span className="text-xs font-black uppercase tracking-widest">TRANSACTION SETTLED (PAID)</span>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex gap-2 print:hidden">
+              <button 
+                onClick={() => window.print()}
+                className="w-1/2 bg-white text-slate-700 border border-slate-250 py-2.5 rounded-xl font-bold hover:bg-slate-100 transition text-xs uppercase tracking-wider cursor-pointer"
+              >
+                Print Receipt
+              </button>
+              <button 
+                onClick={() => {
+                  const message = `*ZenLoan Microfinance Receipt*\n\n` +
+                    `*Receipt No:* ${receiptNumber}\n` +
+                    `*Group:* ${loan.groupId?.name || 'Unknown Group'}\n` +
+                    `*Installment:* #${installmentNum}\n` +
+                    `*Paid Date:* ${new Date(selectedReceipt.paidDate || Date.now()).toLocaleDateString()}\n` +
+                    `*Amount Paid:* ₹${(selectedReceipt.amount + (selectedReceipt.penalty || 0)).toLocaleString()}\n\n` +
+                    `Thank you for your payment! Joint liability groups ensure micro-credit sustainability.\n` +
+                    `_ZenLoan Microfinance Security System_`;
+                  const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+                  window.open(waUrl, '_blank');
+                }}
+                className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-2.5 rounded-xl font-bold transition text-xs uppercase tracking-wider cursor-pointer shadow-xs shadow-violet-500/10"
+              >
+                Share WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
 
 export default LoanDetails;

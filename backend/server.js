@@ -25,6 +25,8 @@ app.use('/api/groups', require('./routes/groupRoutes'));
 app.use('/api/loans', require('./routes/loanRoutes'));
 app.use('/api/installments', require('./routes/installmentRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/settings', require('./routes/settingsRoutes'));
+
 
 // Start cron jobs
 require('./services/cronJobs');

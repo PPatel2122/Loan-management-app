@@ -21,13 +21,15 @@ const Loans = () => {
     paymentFrequency: 'Monthly'
   });
 
+  const [activeTab, setActiveTab] = useState('active');
+
   useEffect(() => {
     fetchLoans();
   }, []);
 
   const fetchLoans = async () => {
     try {
-      const { data } = await api.get('/loans?excludeStatus=Completed');
+      const { data } = await api.get('/loans');
       setLoans(data);
     } catch (err) {
       console.error(err);
@@ -72,7 +74,31 @@ const Loans = () => {
       setShowModal(false);
       fetchLoans();
     } catch (err) {
-      setError(err.response?.data?.message || 'Error creating loan');
+      setError(err.response?.data?.message || 'Error requesting loan');
+    }
+  };
+
+  const handleApproveLoan = async (id, recipient) => {
+    if (!window.confirm(`Approve loan request for ${recipient}? This will disburse the capital and generate installments.`)) {
+      return;
+    }
+    try {
+      await api.put(`/loans/${id}/approve`);
+      fetchLoans();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to approve loan');
+    }
+  };
+
+  const handleRejectLoan = async (id, recipient) => {
+    if (!window.confirm(`Reject loan request for ${recipient}?`)) {
+      return;
+    }
+    try {
+      await api.put(`/loans/${id}/reject`);
+      fetchLoans();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject loan');
     }
   };
 
@@ -89,22 +115,60 @@ const Loans = () => {
     }
   };
 
+  const filteredLoans = loans.filter(loan => {
+    if (activeTab === 'active') {
+      return loan.status === 'Active' || loan.status === 'Completed' || loan.status === 'Defaulted';
+    } else {
+      return loan.status === 'Pending' || loan.status === 'Approved' || loan.status === 'Rejected';
+    }
+  });
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-left">
         <div>
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Active Group Loans</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage joint liability group loans, outstanding principals, and repayments</p>
+          <h1 className="text-2xl font-black text-slate-800 tracking-tight">Group Credit & Loans</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage joint liability group credit requests, disbursements, and statements</p>
         </div>
-        {user?.role === 'Admin' && (
+        {(user?.role === 'Admin' || user?.role === 'Employee') && (
           <button 
             onClick={openCreateModal}
             className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition font-bold text-xs shadow-md shadow-violet-500/15 cursor-pointer uppercase tracking-wider shrink-0"
           >
-            <Plus size={16} /> Create Group Loan
+            <Plus size={16} /> {user?.role === 'Admin' ? 'Create Group Loan' : 'Request Group Loan'}
           </button>
         )}
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex border-b border-slate-100 gap-6 text-left">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={`pb-3 font-bold text-xs uppercase tracking-wider transition relative cursor-pointer ${
+            activeTab === 'active' ? 'text-violet-600 font-black' : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          Active Portfolios
+          {activeTab === 'active' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 rounded-full" />}
+        </button>
+        <button
+          onClick={() => {
+            setActiveTab('pending');
+            fetchDropdownData();
+          }}
+          className={`pb-3 font-bold text-xs uppercase tracking-wider transition relative cursor-pointer flex items-center gap-1.5 ${
+            activeTab === 'pending' ? 'text-violet-600 font-black' : 'text-slate-400 hover:text-slate-600'
+          }`}
+        >
+          Pending Requests
+          {loans.filter(l => l.status === 'Pending').length > 0 && (
+            <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white text-[8px] font-black leading-none animate-pulse">
+              {loans.filter(l => l.status === 'Pending').length}
+            </span>
+          )}
+          {activeTab === 'pending' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-violet-600 rounded-full" />}
+        </button>
       </div>
 
       {/* Desktop view (table) */}
@@ -122,7 +186,7 @@ const Loans = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loans.map((loan) => {
+              {filteredLoans.map((loan) => {
                 const groupName = loan.groupId?.name || 'Unknown Group';
                 return (
                   <tr key={loan._id} className="hover:bg-slate-50/60 transition cursor-pointer">
@@ -157,32 +221,65 @@ const Loans = () => {
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-bounce" /> Defaulted
                         </span>
                       )}
+                      {loan.status === 'Pending' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wide">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" /> Pending
+                        </span>
+                      )}
+                      {loan.status === 'Rejected' && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-550 text-rose-700 border border-rose-100 uppercase tracking-wide">
+                          Rejected
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end items-center gap-2">
-                        <Link 
-                          to={`/loans/${loan._id}`} 
-                          className="text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
-                        >
-                          <Eye size={13} /> View Ledger
-                        </Link>
-                        {user?.role === 'Admin' && (
-                          <button 
-                            onClick={() => handleDeleteLoan(loan._id, groupName)}
-                            className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
-                            title="Delete Loan"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                        {loan.status === 'Pending' ? (
+                          user?.role === 'Admin' ? (
+                            <>
+                              <button 
+                                onClick={() => handleApproveLoan(loan._id, groupName)}
+                                className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-250 text-emerald-700 font-extrabold px-3 py-1.5 rounded-lg text-[10px] transition uppercase tracking-wider cursor-pointer shadow-xs"
+                              >
+                                Approve
+                              </button>
+                              <button 
+                                onClick={() => handleRejectLoan(loan._id, groupName)}
+                                className="bg-rose-50 hover:bg-rose-100 border border-rose-250 text-rose-750 font-extrabold px-3 py-1.5 rounded-lg text-[10px] transition uppercase tracking-wider cursor-pointer shadow-xs"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Under Review</span>
+                          )
+                        ) : (
+                          <>
+                            <Link 
+                              to={`/loans/${loan._id}`} 
+                              className="text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg text-[10px] font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
+                            >
+                              <Eye size={13} /> View Ledger
+                            </Link>
+                            {user?.role === 'Admin' && (
+                              <button 
+                                onClick={() => handleDeleteLoan(loan._id, groupName)}
+                                className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
+                                title="Delete Loan"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
                   </tr>
                 );
               })}
-              {loans.length === 0 && (
+              {filteredLoans.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No active group loans found.</td>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No credit records found.</td>
                 </tr>
               )}
             </tbody>
@@ -190,9 +287,9 @@ const Loans = () => {
         </div>
       </div>
 
-      {/* Mobile view (cards) */}
+
       <div className="block md:hidden space-y-4">
-        {loans.map((loan) => {
+        {filteredLoans.map((loan) => {
           const groupName = loan.groupId?.name || 'Unknown Group';
           return (
             <div key={loan._id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-xs space-y-3.5">
@@ -215,6 +312,16 @@ const Loans = () => {
                   {loan.status === 'Defaulted' && (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wide">
                       Defaulted
+                    </span>
+                  )}
+                  {loan.status === 'Pending' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-amber-50 text-amber-700 border border-amber-100 uppercase tracking-wide">
+                      Pending
+                    </span>
+                  )}
+                  {loan.status === 'Rejected' && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold bg-rose-50 text-rose-700 border border-rose-100 uppercase tracking-wide">
+                      Rejected
                     </span>
                   )}
                 </div>
@@ -245,29 +352,52 @@ const Loans = () => {
                 </div>
                 
                 <div className="flex gap-2">
-                  {user?.role === 'Admin' && (
-                    <button 
-                      onClick={() => handleDeleteLoan(loan._id, groupName)}
-                      className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition border border-slate-100 hover:border-rose-100 cursor-pointer"
-                      title="Delete Loan"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                  {loan.status === 'Pending' ? (
+                    user?.role === 'Admin' ? (
+                      <>
+                        <button 
+                          onClick={() => handleApproveLoan(loan._id, groupName)}
+                          className="bg-emerald-50 hover:bg-emerald-105 border border-emerald-200 text-emerald-700 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition uppercase tracking-wider cursor-pointer shadow-xs"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => handleRejectLoan(loan._id, groupName)}
+                          className="bg-rose-50 hover:bg-rose-105 border border-rose-200 text-rose-700 font-black px-2.5 py-1.5 rounded-lg text-[10px] transition uppercase tracking-wider cursor-pointer shadow-xs"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 font-bold uppercase tracking-wider py-1.5">Under Review</span>
+                    )
+                  ) : (
+                    <>
+                      {user?.role === 'Admin' && (
+                        <button 
+                          onClick={() => handleDeleteLoan(loan._id, groupName)}
+                          className="text-rose-500 hover:bg-rose-50 p-2 rounded-xl transition border border-slate-100 hover:border-rose-100 cursor-pointer"
+                          title="Delete Loan"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                      <Link 
+                        to={`/loans/${loan._id}`} 
+                        className="text-violet-755 bg-violet-50 hover:bg-violet-100 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
+                      >
+                        <Eye size={14} /> View Ledger
+                      </Link>
+                    </>
                   )}
-                  <Link 
-                    to={`/loans/${loan._id}`} 
-                    className="text-violet-750 bg-violet-50 hover:bg-violet-100 px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 border border-violet-100 shadow-xs uppercase tracking-wider"
-                  >
-                    <Eye size={14} /> View Ledger
-                  </Link>
                 </div>
               </div>
             </div>
           );
         })}
-        {loans.length === 0 && (
+        {filteredLoans.length === 0 && (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-medium italic border border-slate-100">
-            No active group loans found.
+            No credit records found.
           </div>
         )}
       </div>
@@ -385,7 +515,7 @@ const Loans = () => {
                     type="submit" 
                     className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
                   >
-                    Disburse Capital
+                    {user?.role === 'Admin' ? 'Disburse Capital' : 'Request Capital'}
                   </button>
                 </div>
               </form>

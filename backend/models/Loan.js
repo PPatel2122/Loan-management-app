@@ -9,7 +9,7 @@ const loanSchema = new mongoose.Schema({
   totalAmount: { type: Number, required: true },
   startDate: { type: Date, default: Date.now },
   paymentFrequency: { type: String, enum: ['Monthly', 'Weekly'], default: 'Monthly' },
-  status: { type: String, enum: ['Active', 'Completed', 'Defaulted'], default: 'Active' }
+  status: { type: String, enum: ['Pending', 'Approved', 'Rejected', 'Active', 'Completed', 'Defaulted'], default: 'Pending' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Loan', loanSchema);
