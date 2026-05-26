@@ -155,7 +155,7 @@ const Customers = () => {
     name: '', phone: '', address: '', fatherName: '', motherName: '',
     spouseName: '', childrenNames: '', totalChildren: '0', aadhaarNumber: '',
     occupation: '', monthlyIncome: '', homeType: '', permanentAddress: '', assets: '',
-    customerPhoto: '', aadhaarPhoto: '', email: ''
+    customerPhoto: '', aadhaarPhoto: ''
   };
 
   // Main Forms State
@@ -204,27 +204,6 @@ const Customers = () => {
     startDate: new Date().toISOString().split('T')[0],
     paymentFrequency: 'Monthly'
   });
-
-  // OTP Verification States
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpCustomerId, setOtpCustomerId] = useState('');
-  const [otpCustomerName, setOtpCustomerName] = useState('');
-  const [otpCustomerEmail, setOtpCustomerEmail] = useState('');
-  const [otpValue, setOtpValue] = useState('');
-  const [otpError, setOtpError] = useState('');
-  const [otpSuccess, setOtpSuccess] = useState('');
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState(0);
-
-  // Resend OTP Cooldown countdown timer
-  useEffect(() => {
-    if (resendCooldown <= 0) return;
-    const timer = setTimeout(() => {
-      setResendCooldown(prev => prev - 1);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [resendCooldown]);
 
   useEffect(() => {
     fetchCustomers();
@@ -328,15 +307,10 @@ const Customers = () => {
         totalChildren: parseInt(formData.totalChildren) || 0,
         monthlyIncome: parseFloat(formData.monthlyIncome) || 0
       };
-      const { data } = await api.post('/customers', payload);
+      await api.post('/customers', payload);
       setShowModal(false);
       setFormData(initialCustomerState);
       fetchCustomers();
-      
-      // Auto-trigger OTP verification if customer created successfully
-      if (data && data._id) {
-        triggerSendOTP(data._id, data.name, data.email);
-      }
     } catch (err) {
       setError(err.response?.data?.message || 'Error creating customer');
     } finally {
@@ -436,7 +410,6 @@ const Customers = () => {
           homeType: m.homeType,
           permanentAddress: m.permanentAddress.trim() || m.address.trim(),
           assets: m.assets.trim(),
-          email: m.email ? m.email.trim() : '',
           customerPhoto: m.customerPhoto || '',
           aadhaarPhoto: m.aadhaarPhoto || ''
         };
@@ -489,62 +462,6 @@ const Customers = () => {
       fetchGroups();
     } catch (err) {
       alert(err.response?.data?.message || 'Error updating verification status');
-    }
-  };
-
-  // OTP Verification Triggers
-  const triggerSendOTP = async (customerId, name, email) => {
-    if (!email) {
-      alert(`Customer ${name} does not have a registered email address. Please edit their profile to add an email address first.`);
-      return;
-    }
-    
-    setOtpCustomerId(customerId);
-    setOtpCustomerName(name);
-    setOtpCustomerEmail(email);
-    setOtpValue('');
-    setOtpError('');
-    setOtpSuccess('');
-    setShowOtpModal(true);
-    setSendingOtp(true);
-
-    try {
-      await api.post(`/customers/${customerId}/send-otp`);
-      setOtpSuccess(`Verification code sent successfully to ${email}`);
-      setResendCooldown(60); // 60 seconds cooldown
-    } catch (err) {
-      setOtpError(err.response?.data?.message || 'Error sending OTP verification email');
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOTPSubmit = async (e) => {
-    e.preventDefault();
-    setOtpError('');
-    setOtpSuccess('');
-    setVerifyingOtp(true);
-
-    try {
-      const { data } = await api.post(`/customers/${otpCustomerId}/verify-otp`, { otp: otpValue });
-      setOtpSuccess('KYC verified successfully!');
-      
-      // Update selectedGroup UI state
-      if (selectedGroup) {
-        const updatedMembers = selectedGroup.members.map(m => m._id === otpCustomerId ? data.customer : m);
-        setSelectedGroup({ ...selectedGroup, members: updatedMembers });
-      }
-
-      setCustomers(customers.map(c => c._id === otpCustomerId ? data.customer : c));
-      fetchGroups();
-      
-      setTimeout(() => {
-        setShowOtpModal(false);
-      }, 1500);
-    } catch (err) {
-      setOtpError(err.response?.data?.message || 'Invalid or expired OTP code');
-    } finally {
-      setVerifyingOtp(false);
     }
   };
 
@@ -781,7 +698,7 @@ const Customers = () => {
           <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
             <Users size={12} /> Personal Identity Details
           </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
               <input 
@@ -789,15 +706,6 @@ const Customers = () => {
                 placeholder="Borrower's complete name"
                 className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
                 value={values.name} onChange={e => setValues({...values, name: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
-              <input 
-                type="email" required
-                placeholder="Borrower's email address"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
-                value={values.email || ''} onChange={e => setValues({...values, email: e.target.value})}
               />
             </div>
             <div>
@@ -1283,13 +1191,7 @@ const Customers = () => {
                           {/* Action Bar */}
                           <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100">
                             <button
-                              onClick={() => {
-                                if (member.isVerified) {
-                                  handleToggleVerification(member);
-                                } else {
-                                  triggerSendOTP(member._id, member.name, member.email);
-                                }
-                              }}
+                              onClick={() => handleToggleVerification(member)}
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                                 member.isVerified 
                                   ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100'
@@ -1586,13 +1488,13 @@ const Customers = () => {
                               {c.name}
                             </td>
                             <td className="px-6 py-4 text-slate-600 font-bold text-xs">{c.phone}</td>
-                             <td className="px-6 py-4">
+                            <td className="px-6 py-4">
                               {c.isVerified ? (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 cursor-pointer animate-fade-in" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
                                   <Check size={11} /> Verified
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100 cursor-pointer animate-fade-in" onClick={e => { e.stopPropagation(); triggerSendOTP(c._id, c.name, c.email); }}>
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wider bg-amber-50 text-amber-700 border border-amber-100" onClick={e => { e.stopPropagation(); handleToggleVerification(c); }}>
                                   <Clock size={11} /> Pending
                                 </span>
                               )}
@@ -2213,110 +2115,6 @@ const Customers = () => {
                   </div>
                 </form>
               )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* OTP Verification Modal */}
-      {showOtpModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-[60] p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col animate-scale-up">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
-              <div className="text-left">
-                <h2 className="text-lg font-black text-slate-800 tracking-tight flex items-center gap-2">
-                  <UserCheck className="text-violet-600" size={20} /> KYC Email Verification
-                </h2>
-                <p className="text-xs text-slate-500 mt-1 font-semibold">Enter the 6-digit OTP code sent to the customer</p>
-              </div>
-              <button 
-                onClick={() => setShowOtpModal(false)} 
-                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Customer context info card */}
-              <div className="bg-violet-50/50 border border-violet-100 p-4 rounded-2xl text-left">
-                <span className="text-[10px] font-black text-violet-600 uppercase tracking-wider block">Customer Register</span>
-                <h4 className="font-extrabold text-slate-800 text-sm mt-1">{otpCustomerName}</h4>
-                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400"></span>
-                  Email: <span className="font-bold text-slate-700">{otpCustomerEmail}</span>
-                </p>
-              </div>
-
-              {otpError && (
-                <div className="p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
-                  <AlertCircle size={14} className="shrink-0" />
-                  <span>{otpError}</span>
-                </div>
-              )}
-
-              {otpSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-150 text-emerald-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
-                  <CheckCircle2 size={14} className="shrink-0" />
-                  <span>{otpSuccess}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleVerifyOTPSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 text-center">
-                    Enter Verification OTP Code
-                  </label>
-                  <input 
-                    type="text"
-                    required
-                    maxLength={6}
-                    pattern="\d{6}"
-                    placeholder="000000"
-                    value={otpValue}
-                    onChange={e => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setOtpValue(val);
-                    }}
-                    className="w-full text-center text-3xl font-black tracking-[10px] pl-[10px] py-3 border border-slate-350 rounded-2xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-slate-50 text-slate-800 uppercase"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-slate-400">Didn't receive the OTP?</span>
-                  {resendCooldown > 0 ? (
-                    <span className="text-slate-400 flex items-center gap-1.5">
-                      <Clock size={13} /> Resend in {resendCooldown}s
-                    </span>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={sendingOtp}
-                      onClick={() => triggerSendOTP(otpCustomerId, otpCustomerName, otpCustomerEmail)}
-                      className="text-violet-600 hover:text-violet-800 transition cursor-pointer disabled:opacity-50"
-                    >
-                      {sendingOtp ? 'Sending...' : 'Resend OTP'}
-                    </button>
-                  )}
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowOtpModal(false)}
-                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={verifyingOtp || otpValue.length !== 6}
-                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
-                  >
-                    {verifyingOtp ? 'Verifying...' : 'Verify OTP KYC'}
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         </div>

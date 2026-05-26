@@ -15,10 +15,9 @@ const customerSchema = new mongoose.Schema({
   homeType: { type: String, enum: ['Own House', 'Rented House', ''], default: '' },
   permanentAddress: { type: String, default: '' },
   assets: { type: String, default: '' },
-  email: { type: String, default: '' },
   customerPhoto: { type: String, default: '' },
   aadhaarPhoto: { type: String, default: '' },
-  isVerified: { type: Boolean, default: false }
+  isVerified: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Customer', customerSchema);
