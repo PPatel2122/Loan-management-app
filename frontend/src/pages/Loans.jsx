@@ -434,7 +434,7 @@ const Loans = () => {
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Customer Group *</label>
                   <select 
                     required
-                    className="w-full p-3 border border-slate-355 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-semibold transition"
+                    className="premium-select"
                     value={formData.groupId} 
                     onChange={e => setFormData({...formData, groupId: e.target.value})}
                   >
@@ -452,7 +452,7 @@ const Loans = () => {
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Principal Amount (₹) *</label>
                     <input 
                       type="number" required min="1"
-                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
+                      className="premium-input"
                       value={formData.amount} 
                       onChange={e => setFormData({...formData, amount: e.target.value})}
                     />
@@ -461,7 +461,7 @@ const Loans = () => {
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Interest (% p.a.) *</label>
                     <input 
                       type="number" required min="0" step="0.1"
-                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
+                      className="premium-input"
                       value={formData.interestRate} 
                       onChange={e => setFormData({...formData, interestRate: e.target.value})}
                     />
@@ -472,7 +472,7 @@ const Loans = () => {
                   <div>
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment Frequency</label>
                     <select
-                      className="w-full p-2.5 border border-slate-355 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-semibold transition"
+                      className="premium-select"
                       value={formData.paymentFrequency}
                       onChange={e => setFormData({...formData, paymentFrequency: e.target.value})}
                     >
@@ -484,7 +484,7 @@ const Loans = () => {
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Start Date</label>
                     <input 
                       type="date" required
-                      className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
+                      className="premium-input"
                       value={formData.startDate} 
                       onChange={e => setFormData({...formData, startDate: e.target.value})}
                     />
@@ -497,7 +497,7 @@ const Loans = () => {
                   </label>
                   <input 
                     type="number" required min="1"
-                    className="w-full p-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-slate-800 text-xs font-semibold"
+                    className="premium-input"
                     value={formData.duration} 
                     onChange={e => setFormData({...formData, duration: e.target.value})}
                   />

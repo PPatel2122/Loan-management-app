@@ -12,7 +12,8 @@ import CompletedLoans from './pages/CompletedLoans';
 import Admins from './pages/Admins';
 import Assignments from './pages/Assignments';
 import CustomerDetails from './pages/CustomerDetails';
-import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+import Tasks from './pages/Tasks';
 
 function App() {
   return (
@@ -30,7 +31,8 @@ function App() {
             <Route path="completed-loans" element={<CompletedLoans />} />
             <Route path="admins" element={<Admins />} />
             <Route path="assignments" element={<Assignments />} />
-            <Route path="settings" element={<Settings />} />
+            <Route path="profile" element={<Profile />} />
+            <Route path="tasks" element={<Tasks />} />
           </Route>
         </Routes>
       </Router>

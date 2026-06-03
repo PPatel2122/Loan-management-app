@@ -33,6 +33,7 @@ const createGroup = async (req, res) => {
     }
 
     const memberIds = [];
+    const Verification = require('../models/Verification');
 
     for (const member of members) {
       if (typeof member === 'string') {
@@ -40,15 +41,21 @@ const createGroup = async (req, res) => {
         memberIds.push(member);
       } else if (member && typeof member === 'object') {
         // New customer details
-        const { name: custName, phone, address } = member;
-        if (!custName || !phone || !address) {
-          return res.status(400).json({ message: 'All details (name, phone, address) are required for all members' });
+        const { name: custName, phone, address, email } = member;
+        if (!custName || !phone || !address || !email) {
+          return res.status(400).json({ message: 'All details (name, email, phone, address) are required for all new members' });
         }
 
         // Check if phone already exists
         let customer = await Customer.findOne({ phone });
         if (!customer) {
+          // Check if email has been verified
+          const verification = await Verification.findOne({ email, verified: true });
+          if (!verification) {
+            return res.status(400).json({ message: `Email (${email}) has not been verified yet. Please request and verify an OTP first.` });
+          }
           customer = await Customer.create(member);
+          await Verification.deleteOne({ email });
         }
         memberIds.push(customer._id);
       }
@@ -143,17 +150,25 @@ const updateGroup = async (req, res) => {
 
     if (members && Array.isArray(members)) {
       const memberIds = [];
+      const Verification = require('../models/Verification');
+      
       for (const member of members) {
         if (typeof member === 'string') {
           memberIds.push(member);
         } else if (member && typeof member === 'object') {
-          const { name: custName, phone, address } = member;
-          if (!custName || !phone || !address) {
-            return res.status(400).json({ message: 'All details (name, phone, address) are required for all members' });
+          const { name: custName, phone, address, email } = member;
+          if (!custName || !phone || !address || !email) {
+            return res.status(400).json({ message: 'All details (name, email, phone, address) are required for all new members' });
           }
           let customer = await Customer.findOne({ phone });
           if (!customer) {
+            // Check if email has been verified
+            const verification = await Verification.findOne({ email, verified: true });
+            if (!verification) {
+              return res.status(400).json({ message: `Email (${email}) has not been verified yet. Please request and verify an OTP first.` });
+            }
             customer = await Customer.create(member);
+            await Verification.deleteOne({ email });
           }
           memberIds.push(customer._id);
         }

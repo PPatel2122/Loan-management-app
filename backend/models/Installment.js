@@ -7,7 +7,8 @@ const installmentSchema = new mongoose.Schema({
   status: { type: String, enum: ['Pending', 'Paid', 'Overdue'], default: 'Pending' },
   penalty: { type: Number, default: 0 },
   remainingAmount: { type: Number, required: true },
-  paidDate: { type: Date }
+  paidDate: { type: Date },
+  nonPaymentReason: { type: String, default: '' }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Installment', installmentSchema);

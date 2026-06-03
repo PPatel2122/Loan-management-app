@@ -5,13 +5,14 @@ const Loan = require('../models/Loan');
 // @route   PUT /api/installments/:id
 // @access  Private
 const updateInstallment = async (req, res) => {
-  const { status, penalty, remainingAmount, paidDate } = req.body;
+  const { status, penalty, remainingAmount, paidDate, nonPaymentReason } = req.body;
   try {
     const installment = await Installment.findById(req.params.id);
     if (!installment) return res.status(404).json({ message: 'Installment not found' });
 
     if (status) installment.status = status;
     if (penalty !== undefined) installment.penalty = penalty;
+    if (nonPaymentReason !== undefined) installment.nonPaymentReason = nonPaymentReason;
     
     if (remainingAmount !== undefined) {
       installment.remainingAmount = remainingAmount;
@@ -53,7 +54,17 @@ const getInstallments = async (req, res) => {
       filter = { loanId: { $in: loanIds } };
     }
 
-    const installments = await Installment.find(filter).populate('loanId').sort({ dueDate: 1 });
+    const installments = await Installment.find(filter)
+      .populate({
+        path: 'loanId',
+        populate: {
+          path: 'groupId',
+          populate: {
+            path: 'members'
+          }
+        }
+      })
+      .sort({ dueDate: 1 });
     res.json(installments);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -127,4 +138,93 @@ const bulkCollectInstallments = async (req, res) => {
   }
 };
 
-module.exports = { updateInstallment, getInstallments, bulkCollectInstallments };
+const collectLoanPayment = async (req, res) => {
+  const { loanId, paymentAmount } = req.body;
+  try {
+    if (!loanId) {
+      return res.status(400).json({ message: 'Loan ID is required' });
+    }
+    const amtToApply = parseFloat(paymentAmount);
+    if (isNaN(amtToApply) || amtToApply <= 0) {
+      return res.status(400).json({ message: 'Payment amount must be greater than zero' });
+    }
+
+    const loan = await Loan.findById(loanId);
+    if (!loan) {
+      return res.status(404).json({ message: 'Loan not found' });
+    }
+
+    // Find all unpaid or partially paid installments for this loan, sorted by due date
+    const unpaidInstallments = await Installment.find({
+      loanId,
+      status: { $ne: 'Paid' }
+    }).sort({ dueDate: 1 });
+
+    if (unpaidInstallments.length === 0) {
+      return res.status(400).json({ message: 'All installments for this loan are already paid' });
+    }
+
+    let remainingPayment = amtToApply;
+    const updated = [];
+
+    for (const inst of unpaidInstallments) {
+      if (remainingPayment <= 0) break;
+
+      const totalDue = inst.remainingAmount + inst.penalty;
+
+      if (remainingPayment >= totalDue) {
+        // This installment is fully covered
+        remainingPayment -= totalDue;
+        inst.remainingAmount = 0;
+        inst.penalty = 0;
+        inst.status = 'Paid';
+        inst.paidDate = new Date();
+      } else {
+        // Partially covered: pay off penalty first, then the remaining principal
+        if (inst.penalty > 0) {
+          const penaltyPaid = Math.min(inst.penalty, remainingPayment);
+          inst.penalty -= penaltyPaid;
+          remainingPayment -= penaltyPaid;
+        }
+
+        if (remainingPayment > 0) {
+          inst.remainingAmount = Math.max(0, inst.remainingAmount - remainingPayment);
+          remainingPayment = 0;
+        }
+
+        if (inst.remainingAmount <= 0) {
+          inst.status = 'Paid';
+          inst.paidDate = new Date();
+        }
+      }
+
+      await inst.save();
+      updated.push(inst);
+    }
+
+    // Check if the loan is fully completed now
+    const allInstallments = await Installment.find({ loanId });
+    const allPaid = allInstallments.every(inst => inst.status === 'Paid');
+    if (allPaid) {
+      loan.status = 'Completed';
+      await loan.save();
+    }
+
+    res.json({
+      message: 'Bulk payment processed successfully',
+      appliedAmount: amtToApply - remainingPayment,
+      changeReturned: remainingPayment,
+      installmentsUpdated: updated.length,
+      loanStatus: loan.status
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { 
+  updateInstallment, 
+  getInstallments, 
+  bulkCollectInstallments,
+  collectLoanPayment
+};

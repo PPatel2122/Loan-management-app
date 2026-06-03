@@ -180,7 +180,7 @@ const Assignments = () => {
               placeholder="Search collectors by name or username..."
               value={searchEmployeeQuery}
               onChange={(e) => setSearchEmployeeQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-350 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-xs font-semibold bg-white text-slate-800"
+              className="premium-input pl-10"
             />
           </div>
         </div>
@@ -309,7 +309,7 @@ const Assignments = () => {
                   placeholder="Search microfinance groups..."
                   value={modalSearchQuery}
                   onChange={(e) => setModalSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-850"
+                  className="premium-input pl-10"
                 />
               </div>
 

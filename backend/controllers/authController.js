@@ -126,4 +126,113 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, registerUser, getUsers, deleteUser, assignGroupsToEmployee, updateUserRole };
+const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (user) {
+      res.json(user);
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.email = req.body.email || user.email;
+      user.phone = req.body.phone || user.phone;
+      if (req.body.profilePhoto !== undefined) {
+        user.profilePhoto = req.body.profilePhoto;
+      }
+      if (req.body.employeeId && req.user.role === 'Admin') {
+        user.employeeId = req.body.employeeId;
+      }
+      
+      const updatedUser = await user.save();
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
+        username: updatedUser.username,
+        role: updatedUser.role,
+        profilePhoto: updatedUser.profilePhoto,
+        employeeId: updatedUser.employeeId,
+        createdAt: updatedUser.createdAt,
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateStaffProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
+    user.username = req.body.username || user.username;
+    
+    // Manage role change
+    const oldRole = user.role;
+    if (req.body.role && ['Admin', 'Employee'].includes(req.body.role)) {
+      user.role = req.body.role;
+      // Clear assigned groups if the role changes from Employee to Admin
+      if (oldRole === 'Employee' && req.body.role === 'Admin') {
+        await Group.updateMany({ collector: user._id }, { $set: { collector: null } });
+      }
+    }
+    
+    if (req.body.employeeId) {
+      user.employeeId = req.body.employeeId;
+    }
+    
+    if (req.body.profilePhoto !== undefined) {
+      user.profilePhoto = req.body.profilePhoto;
+    }
+
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+    
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      phone: updatedUser.phone,
+      username: updatedUser.username,
+      role: updatedUser.role,
+      employeeId: updatedUser.employeeId,
+      profilePhoto: updatedUser.profilePhoto,
+      createdAt: updatedUser.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { 
+  loginUser, 
+  registerUser, 
+  getUsers, 
+  deleteUser, 
+  assignGroupsToEmployee, 
+  updateUserRole,
+  getProfile,
+  updateProfile,
+  updateStaffProfile
+};

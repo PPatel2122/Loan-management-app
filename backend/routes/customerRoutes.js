@@ -5,9 +5,14 @@ const {
   getCustomers,
   getCustomerById,
   deleteCustomer,
-  updateCustomer
+  updateCustomer,
+  sendOTP,
+  verifyOTP
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/authMiddleware');
+
+router.post('/send-otp', protect, sendOTP);
+router.post('/verify-otp', protect, verifyOTP);
 
 router.route('/')
   .post(protect, addCustomer)

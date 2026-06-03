@@ -14,6 +14,10 @@ const LoanDetails = () => {
   const [receiptNumber, setReceiptNumber] = useState('');
   const [installmentNum, setInstallmentNum] = useState(0);
 
+  // Custom / Bulk Payment states
+  const [showCustomPaymentModal, setShowCustomPaymentModal] = useState(false);
+  const [customPaymentAmount, setCustomPaymentAmount] = useState('');
+  const [savingCustomPayment, setSavingCustomPayment] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -56,6 +60,30 @@ const LoanDetails = () => {
       fetchData();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleCustomPaymentSubmit = async (e) => {
+    e.preventDefault();
+    const amount = parseFloat(customPaymentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid payment amount greater than 0.');
+      return;
+    }
+    
+    setSavingCustomPayment(true);
+    try {
+      const { data } = await api.post('/installments/loan-payment', {
+        loanId: id,
+        paymentAmount: amount,
+      });
+      setShowCustomPaymentModal(false);
+      alert(data.message + `\n\nApplied Amount: ₹${data.appliedAmount.toLocaleString('en-IN')}` + (data.changeReturned > 0 ? `\nChange Returned: ₹${data.changeReturned.toLocaleString('en-IN')}` : ''));
+      fetchData();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    } finally {
+      setSavingCustomPayment(false);
     }
   };
 
@@ -185,6 +213,17 @@ const LoanDetails = () => {
           <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
             <History size={18} className="text-violet-600" /> Installment Recovery Schedule
           </h2>
+          {loan.status !== 'Completed' && (
+            <button
+              onClick={() => {
+                setCustomPaymentAmount('');
+                setShowCustomPaymentModal(true);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition font-bold text-xs shadow-md shadow-emerald-500/15 cursor-pointer uppercase tracking-wider shrink-0"
+            >
+              <Coins size={14} /> Collect Custom / Bulk Payment
+            </button>
+          )}
         </div>
         
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
@@ -294,7 +333,7 @@ const LoanDetails = () => {
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Remaining Amount (₹)</label>
                 <input 
                   type="number" required 
-                  className="w-full border border-slate-350 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold" 
+                  className="premium-input"
                   value={editFormData.remainingAmount} 
                   onChange={e => setEditFormData({...editFormData, remainingAmount: e.target.value})} 
                 />
@@ -303,7 +342,7 @@ const LoanDetails = () => {
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Overdue Penalty (₹)</label>
                 <input 
                   type="number" required 
-                  className="w-full border border-slate-350 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold" 
+                  className="premium-input"
                   value={editFormData.penalty} 
                   onChange={e => setEditFormData({...editFormData, penalty: e.target.value})} 
                 />
@@ -311,7 +350,7 @@ const LoanDetails = () => {
               <div className="text-left">
                 <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Recovery Status</label>
                 <select 
-                  className="w-full border border-slate-355 focus:ring-2 focus:ring-violet-500 rounded-xl p-2.5 outline-none text-xs font-semibold bg-white" 
+                  className="premium-select" 
                   value={editFormData.status} 
                   onChange={e => setEditFormData({...editFormData, status: e.target.value})}
                 >
@@ -358,10 +397,19 @@ const LoanDetails = () => {
             {/* Printable Area */}
             <div id="receipt-print-area" className="p-6 space-y-6 text-left text-slate-800 bg-white">
               {/* Receipt Branding */}
-              <div className="text-center pb-4 border-b border-slate-100">
-                <h1 className="text-lg font-black tracking-tight text-slate-900">ZENLOAN MICROFINANCE</h1>
-                <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest mt-1">Joint Liability Group Credit System</p>
-                <p className="text-[9px] text-slate-500 font-semibold mt-0.5">Assuring Rural Women Empowerment</p>
+              <div className="text-center pb-4 border-b border-slate-100 flex flex-col items-center">
+                <div className="w-12 h-12 mb-2 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-slate-100 p-0.5 shadow-sm">
+                  <img src="/Logo.jpeg" alt="Logo" className="w-full h-full object-contain" />
+                </div>
+                <h1 className="text-lg font-black tracking-tight text-slate-900">
+                  EKAAKSHARA FINANCE SERVICES
+                </h1>
+                <p className="text-[9px] text-slate-450 font-extrabold uppercase tracking-wider mt-1">
+                  Joint Liability Group Credit System
+                </p>
+                <p className="text-[9px] text-slate-500 font-semibold mt-0.5">
+                  Assuring Rural Women Empowerment
+                </p>
               </div>
 
               {/* Meta details */}
@@ -432,14 +480,14 @@ const LoanDetails = () => {
               </button>
               <button 
                 onClick={() => {
-                  const message = `*ZenLoan Microfinance Receipt*\n\n` +
+                  const message = `*Ekaakshara Finance Services Receipt*\n\n` +
                     `*Receipt No:* ${receiptNumber}\n` +
                     `*Group:* ${loan.groupId?.name || 'Unknown Group'}\n` +
                     `*Installment:* #${installmentNum}\n` +
                     `*Paid Date:* ${new Date(selectedReceipt.paidDate || Date.now()).toLocaleDateString()}\n` +
                     `*Amount Paid:* ₹${(selectedReceipt.amount + (selectedReceipt.penalty || 0)).toLocaleString()}\n\n` +
                     `Thank you for your payment! Joint liability groups ensure micro-credit sustainability.\n` +
-                    `_ZenLoan Microfinance Security System_`;
+                    `_Ekaakshara Finance Services Security System_`;
                   const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
                   window.open(waUrl, '_blank');
                 }}
@@ -448,6 +496,93 @@ const LoanDetails = () => {
                 Share WhatsApp
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Custom / Bulk Payment Modal */}
+      {showCustomPaymentModal && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in text-left">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-5 border-b border-slate-100 bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-sm font-black text-slate-800 tracking-tight">Custom / Bulk Prepayment</h2>
+                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Collect custom prepayments or clear the loan ledger</p>
+              </div>
+              <button 
+                onClick={() => setShowCustomPaymentModal(false)} 
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCustomPaymentSubmit} className="p-5 space-y-4">
+              <div className="text-left bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-1.5">
+                <div className="flex justify-between items-center text-xs text-slate-650 font-bold">
+                  <span>Regular EMI Amount:</span>
+                  <span className="font-extrabold text-slate-800">₹{loan.emiAmount.toLocaleString('en-IN')}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-slate-650 font-bold pt-1.5 border-t border-slate-200/60">
+                  <span>Total Loan Outstanding:</span>
+                  <span className="font-extrabold text-indigo-650">
+                    ₹{installments
+                      .filter(inst => inst.status !== 'Paid')
+                      .reduce((sum, inst) => sum + inst.remainingAmount + (inst.penalty || 0), 0)
+                      .toLocaleString('en-IN')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Enter Collected Amount (₹) *</label>
+                <input 
+                  type="number" required 
+                  className="premium-input"
+                  placeholder="e.g. 5000"
+                  value={customPaymentAmount} 
+                  onChange={e => setCustomPaymentAmount(e.target.value)} 
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2 text-left">
+                <button
+                  type="button"
+                  onClick={() => setCustomPaymentAmount(loan.emiAmount * 2)}
+                  className="px-2.5 py-1.5 bg-violet-50 hover:bg-violet-100 border border-violet-100 text-violet-700 rounded-lg text-[9px] font-black uppercase tracking-wider cursor-pointer transition shadow-xs"
+                >
+                  Pay 2 EMIs (₹{(loan.emiAmount * 2).toLocaleString('en-IN')})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const totalRemaining = installments
+                      .filter(inst => inst.status !== 'Paid')
+                      .reduce((sum, inst) => sum + inst.remainingAmount + (inst.penalty || 0), 0);
+                    setCustomPaymentAmount(totalRemaining);
+                  }}
+                  className="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 text-emerald-700 rounded-lg text-[9px] font-black uppercase tracking-wider cursor-pointer transition shadow-xs"
+                >
+                  Full Clearance
+                </button>
+              </div>
+
+              <div className="pt-4 flex gap-2 border-t border-slate-100 mt-5 bg-slate-50 -mx-5 -mb-5 p-4">
+                <button 
+                  type="button" 
+                  onClick={() => setShowCustomPaymentModal(false)} 
+                  className="w-1/2 bg-white text-slate-700 border border-slate-250 py-2.5 rounded-xl font-bold hover:bg-slate-50 transition text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={savingCustomPayment}
+                  className="w-1/2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 rounded-xl font-bold transition text-xs uppercase tracking-wider cursor-pointer shadow-xs shadow-emerald-500/10"
+                >
+                  {savingCustomPayment ? 'Processing...' : 'Collect Payment'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

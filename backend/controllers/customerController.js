@@ -1,27 +1,105 @@
 const Customer = require('../models/Customer');
+const Verification = require('../models/Verification');
+const { sendOTPEmail } = require('../services/emailService');
 const { calculateRiskScore } = require('../services/riskScoring');
+
+// @desc    Send OTP to email
+// @route   POST /api/customers/send-otp
+// @access  Private
+const sendOTP = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res.status(400).json({ message: 'Email address is required' });
+    }
+
+    // Generate 6-digit OTP code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save/update verification doc
+    await Verification.findOneAndUpdate(
+      { email },
+      { otp, verified: false, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    // Send the email
+    await sendOTPEmail(email, otp);
+
+    res.json({ message: 'OTP sent successfully to email.' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Verify OTP
+// @route   POST /api/customers/verify-otp
+// @access  Private
+const verifyOTP = async (req, res) => {
+  const { email, otp } = req.body;
+  try {
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const verification = await Verification.findOne({ email });
+    if (!verification) {
+      return res.status(400).json({ message: 'No OTP requested for this email address.' });
+    }
+
+    if (verification.expiresAt < new Date()) {
+      return res.status(400).json({ message: 'OTP has expired. Please request a new one.' });
+    }
+
+    if (verification.otp !== otp) {
+      return res.status(400).json({ message: 'Invalid OTP code. Please try again.' });
+    }
+
+    verification.verified = true;
+    await verification.save();
+
+    res.json({ message: 'Email verified successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // @desc    Add new customer
 // @route   POST /api/customers
 // @access  Private
 const addCustomer = async (req, res) => {
   const { 
-    name, phone, address, fatherName, motherName, spouseName, 
+    name, email, phone, address, fatherName, motherName, spouseName, 
     childrenNames, totalChildren, aadhaarNumber, occupation, 
     monthlyIncome, homeType, permanentAddress, assets,
     customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
   } = req.body;
   try {
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required' });
+    }
     let customer = await Customer.findOne({ phone });
     if (customer) {
       return res.status(400).json({ message: 'Customer with this phone already exists' });
     }
+
+    // Verify OTP has been verified
+    const verification = await Verification.findOne({ email, verified: true });
+    if (!verification) {
+      return res.status(400).json({ message: 'Email has not been verified yet. Please request and verify an OTP first.' });
+    }
+
     customer = await Customer.create({ 
-      name, phone, address, fatherName, motherName, spouseName, 
+      name, email, phone, address, fatherName, motherName, spouseName, 
       childrenNames, totalChildren, aadhaarNumber, occupation, 
       monthlyIncome, homeType, permanentAddress, assets,
       customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
     });
+
+    // Clean up verification
+    await Verification.deleteOne({ email });
+
     res.status(201).json(customer);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -109,7 +187,7 @@ const deleteCustomer = async (req, res) => {
 // @access  Private
 const updateCustomer = async (req, res) => {
   const { 
-    name, phone, address, fatherName, motherName, spouseName, 
+    name, email, phone, address, fatherName, motherName, spouseName, 
     childrenNames, totalChildren, aadhaarNumber, occupation, 
     monthlyIncome, homeType, permanentAddress, assets, isVerified,
     customerPhoto, aadhaarPhoto, guarantorName, guarantorPhone, guarantorRelation
@@ -119,6 +197,16 @@ const updateCustomer = async (req, res) => {
     if (!customer) return res.status(404).json({ message: 'Customer not found' });
 
     if (name) customer.name = name;
+    if (email !== undefined && email !== customer.email) {
+      if (email.trim() !== '') {
+        const verification = await Verification.findOne({ email, verified: true });
+        if (!verification) {
+          return res.status(400).json({ message: 'Email has not been verified yet. Please request and verify an OTP first.' });
+        }
+        await Verification.deleteOne({ email });
+      }
+      customer.email = email;
+    }
     if (phone) {
       const existing = await Customer.findOne({ phone, _id: { $ne: customer._id } });
       if (existing) {
@@ -152,4 +240,12 @@ const updateCustomer = async (req, res) => {
   }
 };
 
-module.exports = { addCustomer, getCustomers, getCustomerById, deleteCustomer, updateCustomer };
+module.exports = { 
+  addCustomer, 
+  getCustomers, 
+  getCustomerById, 
+  deleteCustomer, 
+  updateCustomer,
+  sendOTP,
+  verifyOTP
+};

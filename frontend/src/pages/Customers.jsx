@@ -153,10 +153,17 @@ const Customers = () => {
 
   // Main Customer Form initial state
   const initialCustomerState = {
-    name: '', phone: '', address: '', fatherName: '', motherName: '',
+    name: '', phone: '', email: '', address: '', fatherName: '', motherName: '',
     spouseName: '', childrenNames: '', totalChildren: '0', aadhaarNumber: '',
     occupation: '', monthlyIncome: '', homeType: '', permanentAddress: '', assets: '',
-    customerPhoto: '', aadhaarPhoto: ''
+    customerPhoto: '', aadhaarPhoto: '',
+    emailVerified: false,
+    otpSent: false,
+    otpCode: '',
+    otpError: '',
+    otpSuccess: '',
+    otpLoading: false,
+    otpVerifyLoading: false
   };
 
   // Main Forms State
@@ -176,6 +183,46 @@ const Customers = () => {
     } catch (err) {
       console.error('Error capturing image:', err);
       alert('Failed to capture and compress image. Please try again.');
+    }
+  };
+
+  const handleSendOTPClick = async (values, setValues) => {
+    if (!values.email) return;
+    setValues({ ...values, otpLoading: true, otpError: '', otpSuccess: '' });
+    try {
+      await api.post('/customers/send-otp', { email: values.email });
+      setValues({ 
+        ...values, 
+        otpSent: true, 
+        otpLoading: false, 
+        otpSuccess: 'OTP has been successfully sent to customer email!' 
+      });
+    } catch (err) {
+      setValues({ 
+        ...values, 
+        otpLoading: false, 
+        otpError: err.response?.data?.message || 'Failed to send OTP.' 
+      });
+    }
+  };
+
+  const handleVerifyOTPClick = async (values, setValues) => {
+    if (!values.email || !values.otpCode) return;
+    setValues({ ...values, otpVerifyLoading: true, otpError: '', otpSuccess: '' });
+    try {
+      await api.post('/customers/verify-otp', { email: values.email, otp: values.otpCode });
+      setValues({ 
+        ...values, 
+        emailVerified: true, 
+        otpVerifyLoading: false, 
+        otpSuccess: 'Email address verified successfully!' 
+      });
+    } catch (err) {
+      setValues({ 
+        ...values, 
+        otpVerifyLoading: false, 
+        otpError: err.response?.data?.message || 'Invalid OTP code.' 
+      });
     }
   };
 
@@ -300,6 +347,11 @@ const Customers = () => {
   // Single Customer Registration (14 fields)
   const handleCreateCustomer = async (e) => {
     e.preventDefault();
+    if (!formData.emailVerified) {
+      setError("Please verify the customer's email address first.");
+      setLoading(false);
+      return;
+    }
     setError('');
     setLoading(true);
     try {
@@ -389,6 +441,11 @@ const Customers = () => {
           setGroupLoading(false);
           return;
         }
+        if (!m.emailVerified) {
+          setGroupError(`Please verify the email address for new member #${i + 1}`);
+          setGroupLoading(false);
+          return;
+        }
       }
     }
 
@@ -399,6 +456,7 @@ const Customers = () => {
         return {
           name: m.name.trim(),
           phone: m.phone.trim(),
+          email: m.email.trim(),
           address: m.address.trim(),
           fatherName: m.fatherName.trim(),
           motherName: m.motherName.trim(),
@@ -472,6 +530,7 @@ const Customers = () => {
     setEditCustomerFormData({
       name: customer.name || '',
       phone: customer.phone || '',
+      email: customer.email || '',
       address: customer.address || '',
       fatherName: customer.fatherName || '',
       motherName: customer.motherName || '',
@@ -485,13 +544,28 @@ const Customers = () => {
       permanentAddress: customer.permanentAddress || '',
       assets: customer.assets || '',
       customerPhoto: customer.customerPhoto || '',
-      aadhaarPhoto: customer.aadhaarPhoto || ''
+      aadhaarPhoto: customer.aadhaarPhoto || '',
+      emailVerified: customer.email ? true : false,
+      otpSent: false,
+      otpCode: '',
+      otpError: '',
+      otpSuccess: '',
+      otpLoading: false,
+      otpVerifyLoading: false
     });
     setShowEditMemberModal(true);
   };
 
   const handleEditCustomerSubmit = async (e) => {
     e.preventDefault();
+    if (!editCustomerFormData.email) {
+      alert("Email is required.");
+      return;
+    }
+    if (editCustomerFormData.email !== editingCustomer.email && !editCustomerFormData.emailVerified) {
+      alert("Please verify the new email address first.");
+      return;
+    }
     try {
       const payload = {
         ...editCustomerFormData,
@@ -548,6 +622,10 @@ const Customers = () => {
       } else {
         if (!addMemberFormData.name.trim() || !addMemberFormData.phone.trim() || !addMemberFormData.address.trim()) {
           alert('Please fill in required details for new customer');
+          return;
+        }
+        if (!addMemberFormData.emailVerified) {
+          alert("Please verify the new customer's email address first.");
           return;
         }
         memberPayload = {
@@ -705,7 +783,7 @@ const Customers = () => {
               <input 
                 type="text" required
                 placeholder="Borrower's complete name"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.name} onChange={e => setValues({...values, name: e.target.value})}
               />
             </div>
@@ -714,7 +792,7 @@ const Customers = () => {
               <input 
                 type="text" required
                 placeholder="10-digit number"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.phone} onChange={e => setValues({...values, phone: e.target.value})}
               />
             </div>
@@ -723,11 +801,94 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="12-digit UIDAI ID"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.aadhaarNumber} onChange={e => setValues({...values, aadhaarNumber: e.target.value})}
               />
             </div>
           </div>
+
+          {/* Email Address & Verification Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div className="md:col-span-2">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
+              <div className="flex gap-2">
+                <input 
+                  type="email" required
+                  placeholder="e.g. borrower@example.com"
+                  className="premium-input flex-1"
+                  disabled={values.emailVerified}
+                  value={values.email || ''} 
+                  onChange={e => setValues({
+                    ...values, 
+                    email: e.target.value,
+                    emailVerified: false,
+                    otpSent: false,
+                    otpCode: '',
+                    otpError: '',
+                    otpSuccess: ''
+                  })}
+                />
+                {!values.emailVerified ? (
+                  <button
+                    type="button"
+                    disabled={!values.email || values.otpLoading}
+                    onClick={() => handleSendOTPClick(values, setValues)}
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[100px] cursor-pointer"
+                  >
+                    {values.otpLoading ? 'Sending...' : (values.otpSent ? 'Resend OTP' : 'Verify Email')}
+                  </button>
+                ) : (
+                  <span className="bg-emerald-50 text-emerald-705 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Verified
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* OTP Verification Input Sub-panel */}
+          {values.otpSent && !values.emailVerified && (
+            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mt-3 space-y-3">
+              <div className="flex flex-col md:flex-row md:items-end gap-3">
+                <div className="flex-1 text-left">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-650 mb-1.5">Enter 6-digit OTP Code *</label>
+                  <input 
+                    type="text" required
+                    placeholder="Enter 6-digit code"
+                    maxLength={6}
+                    className="premium-input w-full text-center tracking-[0.5em] font-mono text-lg"
+                    value={values.otpCode} 
+                    onChange={e => setValues({...values, otpCode: e.target.value.replace(/\D/g, '')})}
+                  />
+                </div>
+                <button
+                  type="button"
+                  disabled={values.otpCode.length !== 6 || values.otpVerifyLoading}
+                  onClick={() => handleVerifyOTPClick(values, setValues)}
+                  className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[120px] cursor-pointer"
+                >
+                  {values.otpVerifyLoading ? 'Verifying...' : 'Submit OTP'}
+                </button>
+              </div>
+              
+              <p className="text-[10px] text-slate-500">
+                OTP sent to <strong>{values.email}</strong>. Please check your inbox or spam folder.
+              </p>
+            </div>
+          )}
+
+          {/* OTP Verification feedback messages */}
+          {values.otpError && (
+            <div className="bg-red-50 text-red-700 border border-red-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
+              ⚠️ {values.otpError}
+            </div>
+          )}
+          {values.otpSuccess && (
+            <div className="bg-emerald-50 text-emerald-700 border border-emerald-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
+              ✓ {values.otpSuccess}
+            </div>
+          )}
         </fieldset>
 
         {/* Family Structure */}
@@ -741,7 +902,7 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="Father's full name"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.fatherName} onChange={e => setValues({...values, fatherName: e.target.value})}
               />
             </div>
@@ -750,7 +911,7 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="Mother's full name"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.motherName} onChange={e => setValues({...values, motherName: e.target.value})}
               />
             </div>
@@ -759,7 +920,7 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="Husband/Wife's name"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.spouseName} onChange={e => setValues({...values, spouseName: e.target.value})}
               />
             </div>
@@ -770,7 +931,7 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="e.g. Amit Rohit Rahul"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.childrenNames} onChange={e => setValues({...values, childrenNames: e.target.value})}
               />
             </div>
@@ -779,7 +940,7 @@ const Customers = () => {
               <input 
                 type="number" min="0"
                 placeholder="0"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.totalChildren} onChange={e => setValues({...values, totalChildren: e.target.value})}
               />
             </div>
@@ -797,7 +958,7 @@ const Customers = () => {
               <input 
                 type="text"
                 placeholder="e.g. Farming, Tailoring, Dairy"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.occupation} onChange={e => setValues({...values, occupation: e.target.value})}
               />
             </div>
@@ -806,14 +967,14 @@ const Customers = () => {
               <input 
                 type="number" min="0"
                 placeholder="Income in ₹"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.monthlyIncome} onChange={e => setValues({...values, monthlyIncome: e.target.value})}
               />
             </div>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Residence Status</label>
               <select 
-                className="w-full p-2.5 border border-slate-355 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-select"
                 value={values.homeType} onChange={e => setValues({...values, homeType: e.target.value})}
               >
                 <option value="">Select Option</option>
@@ -827,7 +988,7 @@ const Customers = () => {
             <input 
               type="text"
               placeholder="e.g. Land (1 Acre), tractor, 2 cows"
-              className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+              className="premium-input"
               value={values.assets} onChange={e => setValues({...values, assets: e.target.value})}
             />
           </div>
@@ -844,7 +1005,7 @@ const Customers = () => {
               <textarea 
                 required rows="2"
                 placeholder="Verified current local address"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.address} onChange={e => setValues({...values, address: e.target.value})}
               ></textarea>
             </div>
@@ -853,7 +1014,7 @@ const Customers = () => {
               <textarea 
                 rows="2"
                 placeholder="Permanent home address (Leave blank if same)"
-                className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium"
+                className="premium-input"
                 value={values.permanentAddress} onChange={e => setValues({...values, permanentAddress: e.target.value})}
               ></textarea>
             </div>
@@ -956,7 +1117,7 @@ const Customers = () => {
               <div className="text-left">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   <h1 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">{selectedGroup.name}</h1>
-                  {user?.role === 'Admin' && (
+                  {(user?.role === 'Admin' || user?.role === 'Employee') && (
                     <button 
                       onClick={handleRenameGroup}
                       className="p-1 text-slate-400 hover:text-violet-600 hover:bg-slate-50 rounded-lg transition cursor-pointer"
@@ -985,7 +1146,7 @@ const Customers = () => {
             </div>
 
             <div className="flex flex-wrap gap-2.5 w-full lg:w-auto">
-              {user?.role === 'Admin' && (
+              {(user?.role === 'Admin' || user?.role === 'Employee') && (
                 <button 
                   onClick={handleOpenAddMemberModal}
                   className="flex-1 lg:flex-initial bg-violet-50 hover:bg-violet-100 text-violet-700 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs border border-violet-100 shadow-sm shadow-violet-500/5 cursor-pointer"
@@ -1203,21 +1364,21 @@ const Customers = () => {
                               {member.isVerified ? 'Revoke Verification' : 'Verify KYC Documents'}
                             </button>
                             
+                            {(user?.role === 'Admin' || user?.role === 'Employee') && (
+                              <button
+                                onClick={() => handleOpenEditCustomerModal(member)}
+                                className="px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-150 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                              >
+                                <Edit3 size={14} /> Edit Profile
+                              </button>
+                            )}
                             {user?.role === 'Admin' && (
-                              <>
-                                <button
-                                  onClick={() => handleOpenEditCustomerModal(member)}
-                                  className="px-3 py-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-150 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Edit3 size={14} /> Edit Profile
-                                </button>
-                                <button
-                                  onClick={() => handleRemoveMember(member._id)}
-                                  className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Trash2 size={14} /> Remove Member
-                                </button>
-                              </>
+                              <button
+                                onClick={() => handleRemoveMember(member._id)}
+                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-100 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                              >
+                                <Trash2 size={14} /> Remove Member
+                              </button>
                             )}
                           </div>
                         </div>
@@ -1303,7 +1464,7 @@ const Customers = () => {
               <p className="text-sm text-slate-500 mt-1">Manage borrower credit ratings, verify KYC documents, and construct joint liability groups</p>
             </div>
             
-            {user?.role === 'Admin' && (
+            {(user?.role === 'Admin' || user?.role === 'Employee') && (
               <div className="flex gap-2.5 w-full sm:w-auto">
                 <button 
                   onClick={handleOpenGroupModal}
@@ -1717,7 +1878,7 @@ const Customers = () => {
                             <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Existing Customer Profile *</label>
                             <select 
                               required
-                              className="w-full p-2.5 border border-slate-355 rounded-xl text-slate-800 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white font-medium transition-all"
+                              className="premium-select"
                               value={member.customerId} 
                               onChange={e => handleMemberChange(index, 'customerId', e.target.value)}
                             >

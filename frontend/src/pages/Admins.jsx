@@ -1,8 +1,40 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Plus, Search, UserCog, Trash2, Layers, X, Mail, Phone, ShieldAlert, Award } from 'lucide-react';
+import { Plus, Search, UserCog, Trash2, Layers, X, Mail, Phone, ShieldAlert, Award, Camera, Calendar, User } from 'lucide-react';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
+
+// Image compression helper
+const compressImage = (file, maxWidth = 400, quality = 0.6) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressedBase64);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 const Admins = () => {
   const { user } = useContext(AuthContext);
@@ -17,7 +49,7 @@ const Admins = () => {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Add/Edit staff modal state
+  // Add staff modal state
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,6 +58,20 @@ const Admins = () => {
     username: '',
     password: '',
     role: 'Admin',
+  });
+
+  // Edit staff modal state
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [selectedStaffForEdit, setSelectedStaffForEdit] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    username: '',
+    password: '',
+    role: 'Admin',
+    employeeId: '',
+    profilePhoto: '',
   });
 
   // Assign groups modal state
@@ -70,6 +116,49 @@ const Admins = () => {
       await api.post('/auth/register', formData);
       setShowModal(false);
       setFormData({ name: '', email: '', phone: '', username: '', password: '', role: 'Admin' });
+      fetchAdminsAndGroups();
+    } catch (err) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
+  const handleRowClick = (admin) => {
+    setSelectedStaffForEdit(admin);
+    setEditFormData({
+      name: admin.name || '',
+      email: admin.email || '',
+      phone: admin.phone || '',
+      username: admin.username || '',
+      password: '',
+      role: admin.role || 'Admin',
+      employeeId: admin.employeeId || '',
+      profilePhoto: admin.profilePhoto || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const base64 = await compressImage(file);
+      setEditFormData({ ...editFormData, profilePhoto: base64 });
+    } catch (err) {
+      console.error('Error compressing profile photo:', err);
+      alert('Failed to process image file. Please try another one.');
+    }
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...editFormData };
+      if (!payload.password) {
+        delete payload.password;
+      }
+      await api.put(`/auth/staff/${selectedStaffForEdit._id}`, payload);
+      setShowEditModal(false);
+      alert('Staff profile updated successfully!');
       fetchAdminsAndGroups();
     } catch (err) {
       alert(err.response?.data?.message || err.message);
@@ -195,7 +284,7 @@ const Admins = () => {
               placeholder="Search staff accounts..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+              className="premium-input pl-10"
             />
           </div>
         </div>
@@ -234,15 +323,21 @@ const Admins = () => {
                   return (
                     <tr
                       key={admin._id}
+                      onClick={() => handleRowClick(admin)}
                       className="hover:bg-slate-50/60 transition cursor-pointer"
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0">
-                            {admin.name ? admin.name.charAt(0).toUpperCase() : 'A'}
+                          <div className="w-9 h-9 rounded-full overflow-hidden bg-violet-100 text-violet-700 flex items-center justify-center font-black text-xs shrink-0 border border-slate-100 shadow-inner">
+                            {admin.profilePhoto ? (
+                              <img src={admin.profilePhoto} alt={admin.name} className="w-full h-full object-cover" />
+                            ) : (
+                              admin.name ? admin.name.charAt(0).toUpperCase() : 'A'
+                            )}
                           </div>
                           <div className="text-left">
                             <p className="font-extrabold text-slate-850 text-xs">{admin.name}</p>
+                            <p className="font-mono text-[9px] text-slate-400 font-bold mt-0.5">{admin.employeeId || 'No ID'}</p>
                           </div>
                         </div>
                       </td>
@@ -265,7 +360,7 @@ const Admins = () => {
                       </td>
                       <td className="px-6 py-4">
                         <button
-                          onClick={() => handleOpenRoleModal(admin)}
+                          onClick={(e) => { e.stopPropagation(); handleOpenRoleModal(admin); }}
                           className="flex items-center gap-1 text-[9px] font-extrabold uppercase tracking-wider bg-violet-50 text-violet-750 border border-violet-100 hover:bg-violet-100 hover:text-violet-900 hover:border-violet-200 px-2.5 py-1 rounded-full cursor-pointer transition"
                           title="Change Access Level Role"
                         >
@@ -297,7 +392,7 @@ const Admins = () => {
                         <div className="flex justify-end items-center gap-2">
                           {admin.role === 'Employee' && (
                             <button
-                              onClick={() => handleOpenAssignGroups(admin)}
+                              onClick={(e) => { e.stopPropagation(); handleOpenAssignGroups(admin); }}
                               className="text-violet-700 hover:bg-violet-50 px-2.5 py-1.5 rounded-lg border border-transparent hover:border-violet-100 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer uppercase tracking-wider shadow-xs"
                               title="Assign Collection Groups"
                             >
@@ -307,7 +402,7 @@ const Admins = () => {
                           )}
                           {user._id !== admin._id && (
                             <button
-                              onClick={() => handleDelete(admin._id)}
+                              onClick={(e) => { e.stopPropagation(); handleDelete(admin._id); }}
                               className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
                               title="Remove Staff Account"
                             >
@@ -350,7 +445,7 @@ const Admins = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-350 focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+                  className="premium-input"
                 />
               </div>
               <div>
@@ -361,7 +456,7 @@ const Admins = () => {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-355 focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+                  className="premium-input"
                 />
               </div>
               <div>
@@ -371,7 +466,7 @@ const Admins = () => {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-350 focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+                  className="premium-input"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -383,7 +478,7 @@ const Admins = () => {
                     value={formData.username}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-350 focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+                    className="premium-input"
                   />
                 </div>
                 <div>
@@ -394,7 +489,7 @@ const Admins = () => {
                     value={formData.password}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-350 focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+                    className="premium-input"
                   />
                 </div>
               </div>
@@ -405,7 +500,7 @@ const Admins = () => {
                   value={formData.role}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-355 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-bold transition-all"
+                  className="premium-select"
                 >
                   <option value="Admin">System Admin</option>
                   <option value="Employee">Field Collector</option>
@@ -459,7 +554,7 @@ const Admins = () => {
                   placeholder="Search microfinance groups..."
                   value={assignSearchQuery}
                   onChange={(e) => setAssignSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-850"
+                  className="premium-input pl-10"
                 />
               </div>
 
@@ -574,7 +669,7 @@ const Admins = () => {
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-355 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-slate-800 text-xs font-bold"
+                  className="premium-select"
                 >
                   <option value="Admin">System Admin</option>
                   <option value="Employee">Field Collector</option>
@@ -595,6 +690,171 @@ const Admins = () => {
                   className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-2.5 rounded-xl font-bold transition text-xs uppercase tracking-wider cursor-pointer shadow-xs shadow-violet-500/10 disabled:opacity-50"
                 >
                   {savingRole ? 'Saving...' : 'Update Authority'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Edit Staff Modal */}
+      {showEditModal && selectedStaffForEdit && (
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div className="text-left">
+                <h2 className="text-base font-black text-slate-800 tracking-tight">Edit Staff Profile</h2>
+                <p className="text-xs text-slate-500 mt-0.5 font-semibold">Modify particulars for <strong className="text-violet-600">{selectedStaffForEdit.name}</strong></p>
+              </div>
+              <button
+                onClick={() => setShowEditModal(false)}
+                className="p-1.5 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-xl transition bg-white border border-slate-100 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleEditSubmit} className="p-6 overflow-y-auto space-y-4 flex-1 text-left">
+              {/* Profile Photo */}
+              <div className="flex flex-col items-center justify-center pb-2 border-b border-slate-50">
+                <div className="relative group">
+                  <div className="p-1 rounded-full bg-gradient-to-tr from-violet-500 to-indigo-500 shadow-md">
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-inner bg-slate-100 flex items-center justify-center">
+                      {editFormData.profilePhoto ? (
+                        <img src={editFormData.profilePhoto} alt="Upload Preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                          <User size={32} />
+                        </div>
+                      )}
+                      <label className="absolute inset-0 bg-slate-900/60 flex flex-col items-center justify-center text-white/90 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera size={18} />
+                        <span className="text-[8px] font-black uppercase mt-1 tracking-wider">Change</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={handleEditImageChange} 
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    required
+                    className="premium-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mobile Number</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    className="premium-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                  required
+                  className="premium-input"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username *</label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={editFormData.username}
+                    onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+                    required
+                    className="premium-input"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Employee ID</label>
+                  <input
+                    type="text"
+                    name="employeeId"
+                    value={editFormData.employeeId}
+                    onChange={(e) => setEditFormData({ ...editFormData, employeeId: e.target.value })}
+                    placeholder="Auto-generated if blank"
+                    className="premium-input font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Access Role *</label>
+                  <select
+                    name="role"
+                    value={editFormData.role}
+                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
+                    required
+                    className="premium-select"
+                  >
+                    <option value="Admin">System Admin</option>
+                    <option value="Employee">Field Collector</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Reset Password (leave blank to keep)</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={editFormData.password}
+                    onChange={(e) => setEditFormData({ ...editFormData, password: e.target.value })}
+                    placeholder="New password"
+                    className="premium-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Joining Date</label>
+                <div className="premium-input bg-slate-50 text-slate-500 border-slate-100 flex items-center gap-2 cursor-not-allowed select-none font-semibold">
+                  <Calendar size={14} className="text-slate-400 shrink-0" />
+                  <span>
+                    {new Date(selectedStaffForEdit.createdAt).toLocaleString('en-US', { 
+                      weekday: 'short', month: 'long', day: 'numeric', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 mt-6 bg-slate-50 -mx-6 -mb-6 p-4">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="w-1/2 bg-white text-slate-700 border border-slate-250 py-2.5 rounded-xl font-bold hover:bg-slate-50 transition text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white py-2.5 rounded-xl font-bold transition text-xs uppercase tracking-wider cursor-pointer shadow-xs shadow-violet-500/10"
+                >
+                  Save Profile Details
                 </button>
               </div>
             </form>
