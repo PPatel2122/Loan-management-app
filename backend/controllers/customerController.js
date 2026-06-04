@@ -21,7 +21,7 @@ const sendOTP = async (req, res) => {
     await Verification.findOneAndUpdate(
       { email },
       { otp, verified: false, expiresAt },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Send the email
