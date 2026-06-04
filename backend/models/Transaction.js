@@ -36,7 +36,7 @@ const transactionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Auto-generate a unique receipt number before saving if not provided
-transactionSchema.pre('save', async function(next) {
+transactionSchema.pre('save', async function() {
   if (!this.receiptNumber) {
     const now = new Date();
     const dateStr = now.getFullYear() +
@@ -47,7 +47,6 @@ transactionSchema.pre('save', async function(next) {
     const rand = Math.floor(1000 + Math.random() * 9000);
     this.receiptNumber = `REC-${dateStr}-${rand}`;
   }
-  next();
 });
 
 module.exports = mongoose.model('Transaction', transactionSchema);
