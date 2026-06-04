@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const dns = require('dns').promises;
 
 const sendOTPEmail = async (email, otp) => {
   console.log(`[EMAIL SERVICE] Generated OTP for ${email}: ${otp}`);
@@ -7,15 +8,32 @@ const sendOTPEmail = async (email, otp) => {
     let transporter;
 
     if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+      let host = process.env.SMTP_HOST;
+      let tlsOptions = {};
+
+      // Resolve hostname manually to IPv4 to prevent IPv6 ENETUNREACH on platforms like Render
+      if (/[a-zA-Z]/.test(host)) {
+        try {
+          const addresses = await dns.resolve4(host);
+          if (addresses && addresses.length > 0) {
+            console.log(`[EMAIL SERVICE] Resolved ${host} to IPv4: ${addresses[0]}`);
+            host = addresses[0];
+            tlsOptions = { servername: process.env.SMTP_HOST };
+          }
+        } catch (dnsErr) {
+          console.error(`[EMAIL SERVICE] Manual DNS resolution failed for ${host}:`, dnsErr.message);
+        }
+      }
+
       transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
+        host: host,
         port: parseInt(process.env.SMTP_PORT) || 587,
         secure: process.env.SMTP_SECURE === 'true',
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
-        family: 4,               // Force IPv4 resolution to prevent ENETUNREACH on Render
+        tls: tlsOptions,
         connectionTimeout: 5000, // 5 seconds
         socketTimeout: 5000,     // 5 seconds
       });
