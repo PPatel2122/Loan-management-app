@@ -170,6 +170,9 @@ const Customers = () => {
   const [formData, setFormData] = useState(initialCustomerState);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [customerFormStep, setCustomerFormStep] = useState(1);
+  const [groupFormStep, setGroupFormStep] = useState(1);
+  const [addMemberFormStep, setAddMemberFormStep] = useState(1);
 
   const handleImageCapture = async (e, field, setValues, values) => {
     const file = e.target.files[0];
@@ -344,6 +347,71 @@ const Customers = () => {
     }
   };
 
+  const handleNextStep = () => {
+    setError('');
+    if (customerFormStep === 1) {
+      if (!formData.name?.trim()) {
+        setError('Full Name is required');
+        return;
+      }
+      if (!formData.phone?.trim()) {
+        setError('Mobile Number is required');
+        return;
+      }
+      if (!formData.email?.trim()) {
+        setError('Email Address is required');
+        return;
+      }
+      if (!formData.emailVerified) {
+        setError("Please verify the customer's email address first.");
+        return;
+      }
+    } else if (customerFormStep === 2) {
+      if (!formData.address?.trim()) {
+        setError('Current Address is required');
+        return;
+      }
+    }
+    setCustomerFormStep(prev => prev + 1);
+  };
+
+  const handleNextGroupStep = () => {
+    setGroupError('');
+    if (!groupName?.trim()) {
+      setGroupError('Group recipient name is required');
+      return;
+    }
+    setGroupFormStep(2);
+  };
+
+  const handleNextAddMemberStep = () => {
+    setError('');
+    if (addMemberFormStep === 1) {
+      if (!addMemberFormData.name?.trim()) {
+        setError('Full Name is required');
+        return;
+      }
+      if (!addMemberFormData.phone?.trim()) {
+        setError('Mobile Number is required');
+        return;
+      }
+      if (!addMemberFormData.email?.trim()) {
+        setError('Email Address is required');
+        return;
+      }
+      if (!addMemberFormData.emailVerified) {
+        setError("Please verify the customer's email address first.");
+        return;
+      }
+    } else if (addMemberFormStep === 2) {
+      if (!addMemberFormData.address?.trim()) {
+        setError('Current Address is required');
+        return;
+      }
+    }
+    setAddMemberFormStep(prev => prev + 1);
+  };
+
   // Single Customer Registration (14 fields)
   const handleCreateCustomer = async (e) => {
     e.preventDefault();
@@ -377,6 +445,7 @@ const Customers = () => {
     setGroupMembers([{ isExisting: false, customerId: '', ...initialCustomerState }]);
     setGroupError('');
     setGroupSuccess('');
+    setGroupFormStep(1);
     setShowGroupModal(true);
   };
 
@@ -606,6 +675,7 @@ const Customers = () => {
     setAddMemberType('existing');
     setAddMemberCustomerId('');
     setAddMemberFormData(initialCustomerState);
+    setAddMemberFormStep(1);
     setShowAddMemberModal(true);
   };
 
@@ -769,332 +839,343 @@ const Customers = () => {
   );
 
   // Modular Form Inputs Generator (Redesigned with premium input cards & details)
-  const renderCustomerFieldsForm = (values, setValues) => {
+  // Modular Form Inputs Generator (Redesigned with premium input cards & details)
+  const renderCustomerFieldsForm = (values, setValues, step = null) => {
     return (
       <div className="space-y-5 text-left">
-        {/* Core Personal Details */}
-        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
-          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
-            <Users size={12} /> Personal Identity Details
-          </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
-              <input 
-                type="text" required
-                placeholder="Borrower's complete name"
-                className="premium-input"
-                value={values.name} onChange={e => setValues({...values, name: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mobile Number *</label>
-              <input 
-                type="text" required
-                placeholder="10-digit number"
-                className="premium-input"
-                value={values.phone} onChange={e => setValues({...values, phone: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Aadhaar Number</label>
-              <input 
-                type="text"
-                placeholder="12-digit UIDAI ID"
-                className="premium-input"
-                value={values.aadhaarNumber} onChange={e => setValues({...values, aadhaarNumber: e.target.value})}
-              />
-            </div>
-          </div>
-
-          {/* Email Address & Verification Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
-            <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
-              <div className="flex gap-2">
+        {/* Step 1: Core Personal Details */}
+        {(step === null || step === 1) && (
+          <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm animate-fade-in">
+            <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+              <Users size={12} /> Personal Identity Details
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Full Name *</label>
                 <input 
-                  type="email" required
-                  placeholder="e.g. borrower@example.com"
-                  className="premium-input flex-1"
-                  disabled={values.emailVerified}
-                  value={values.email || ''} 
-                  onChange={e => setValues({
-                    ...values, 
-                    email: e.target.value,
-                    emailVerified: false,
-                    otpSent: false,
-                    otpCode: '',
-                    otpError: '',
-                    otpSuccess: ''
-                  })}
+                  type="text" required
+                  placeholder="Borrower's complete name"
+                  className="premium-input"
+                  value={values.name} onChange={e => setValues({...values, name: e.target.value})}
                 />
-                {!values.emailVerified ? (
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mobile Number *</label>
+                <input 
+                  type="text" required
+                  placeholder="10-digit number"
+                  className="premium-input"
+                  value={values.phone} onChange={e => setValues({...values, phone: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Aadhaar Number</label>
+                <input 
+                  type="text"
+                  placeholder="12-digit UIDAI ID"
+                  className="premium-input"
+                  value={values.aadhaarNumber} onChange={e => setValues({...values, aadhaarNumber: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* Email Address & Verification Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Email Address *</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="email" required
+                    placeholder="e.g. borrower@example.com"
+                    className="premium-input flex-1"
+                    disabled={values.emailVerified}
+                    value={values.email || ''} 
+                    onChange={e => setValues({
+                      ...values, 
+                      email: e.target.value,
+                      emailVerified: false,
+                      otpSent: false,
+                      otpCode: '',
+                      otpError: '',
+                      otpSuccess: ''
+                    })}
+                  />
+                  {!values.emailVerified ? (
+                    <button
+                      type="button"
+                      disabled={!values.email || values.otpLoading}
+                      onClick={() => handleSendOTPClick(values, setValues)}
+                      className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[100px] cursor-pointer"
+                    >
+                      {values.otpLoading ? 'Sending...' : (values.otpSent ? 'Resend OTP' : 'Verify Email')}
+                    </button>
+                  ) : (
+                    <span className="bg-emerald-50 text-emerald-705 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      Verified
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* OTP Verification Input Sub-panel */}
+            {values.otpSent && !values.emailVerified && (
+              <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mt-3 space-y-3">
+                <div className="flex flex-col md:flex-row md:items-end gap-3">
+                  <div className="flex-1 text-left">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-650 mb-1.5">Enter 6-digit OTP Code *</label>
+                    <input 
+                      type="text" required
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="premium-input w-full text-center tracking-[0.5em] font-mono text-lg"
+                      value={values.otpCode} 
+                      onChange={e => setValues({...values, otpCode: e.target.value.replace(/\D/g, '')})}
+                    />
+                  </div>
                   <button
                     type="button"
-                    disabled={!values.email || values.otpLoading}
-                    onClick={() => handleSendOTPClick(values, setValues)}
-                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-4 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[100px] cursor-pointer"
+                    disabled={values.otpCode.length !== 6 || values.otpVerifyLoading}
+                    onClick={() => handleVerifyOTPClick(values, setValues)}
+                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[120px] cursor-pointer"
                   >
-                    {values.otpLoading ? 'Sending...' : (values.otpSent ? 'Resend OTP' : 'Verify Email')}
+                    {values.otpVerifyLoading ? 'Verifying...' : 'Submit OTP'}
                   </button>
-                ) : (
-                  <span className="bg-emerald-50 text-emerald-705 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Verified
-                  </span>
-                )}
+                </div>
+                
+                <p className="text-[10px] text-slate-500">
+                  OTP sent to <strong>{values.email}</strong>. Please check your inbox or spam folder.
+                </p>
+              </div>
+            )}
+
+            {/* OTP Verification feedback messages */}
+            {values.otpError && (
+              <div className="bg-red-50 text-red-700 border border-red-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
+                ⚠️ {values.otpError}
+              </div>
+            )}
+            {values.otpSuccess && (
+              <div className="bg-emerald-50 text-emerald-700 border border-emerald-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
+                ✓ {values.otpSuccess}
+              </div>
+            )}
+          </fieldset>
+        )}
+
+        {/* Step 2: Address Credentials */}
+        {(step === null || step === 2) && (
+          <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm animate-fade-in">
+            <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+              <MapPin size={12} /> Address Credentials
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Current Address *</label>
+                <textarea 
+                  required rows="2"
+                  placeholder="Verified current local address"
+                  className="premium-input"
+                  value={values.address} onChange={e => setValues({...values, address: e.target.value})}
+                ></textarea>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Permanent Address</label>
+                <textarea 
+                  rows="2"
+                  placeholder="Permanent home address (Leave blank if same)"
+                  className="premium-input"
+                  value={values.permanentAddress} onChange={e => setValues({...values, permanentAddress: e.target.value})}
+                ></textarea>
               </div>
             </div>
-          </div>
+          </fieldset>
+        )}
 
-          {/* OTP Verification Input Sub-panel */}
-          {values.otpSent && !values.emailVerified && (
-            <div className="bg-slate-100 p-4 rounded-xl border border-slate-200 mt-3 space-y-3">
-              <div className="flex flex-col md:flex-row md:items-end gap-3">
-                <div className="flex-1 text-left">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-650 mb-1.5">Enter 6-digit OTP Code *</label>
-                  <input 
-                    type="text" required
-                    placeholder="Enter 6-digit code"
-                    maxLength={6}
-                    className="premium-input w-full text-center tracking-[0.5em] font-mono text-lg"
-                    value={values.otpCode} 
-                    onChange={e => setValues({...values, otpCode: e.target.value.replace(/\D/g, '')})}
-                  />
-                </div>
-                <button
-                  type="button"
-                  disabled={values.otpCode.length !== 6 || values.otpVerifyLoading}
-                  onClick={() => handleVerifyOTPClick(values, setValues)}
-                  className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center min-w-[120px] cursor-pointer"
+        {/* Step 3: Family Structure */}
+        {(step === null || step === 3) && (
+          <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm animate-fade-in">
+            <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+              <Shield size={12} /> Family Relations
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Father's Name</label>
+                <input 
+                  type="text"
+                  placeholder="Father's full name"
+                  className="premium-input"
+                  value={values.fatherName} onChange={e => setValues({...values, fatherName: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mother's Name</label>
+                <input 
+                  type="text"
+                  placeholder="Mother's full name"
+                  className="premium-input"
+                  value={values.motherName} onChange={e => setValues({...values, motherName: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Spouse's Name</label>
+                <input 
+                  type="text"
+                  placeholder="Husband/Wife's name"
+                  className="premium-input"
+                  value={values.spouseName} onChange={e => setValues({...values, spouseName: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
+              <div className="md:col-span-3">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Children Names (Separate with spaces)</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Amit Rohit Rahul"
+                  className="premium-input"
+                  value={values.childrenNames} onChange={e => setValues({...values, childrenNames: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Total Children</label>
+                <input 
+                  type="number" min="0"
+                  placeholder="0"
+                  className="premium-input"
+                  value={values.totalChildren} onChange={e => setValues({...values, totalChildren: e.target.value})}
+                />
+              </div>
+            </div>
+          </fieldset>
+        )}
+
+        {/* Step 4: Finance & Employment */}
+        {(step === null || step === 4) && (
+          <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm animate-fade-in">
+            <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+              <Briefcase size={12} /> Occupation & Financial Ratios
+            </legend>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Occupation / Job</label>
+                <input 
+                  type="text"
+                  placeholder="e.g. Farming, Tailoring, Dairy"
+                  className="premium-input"
+                  value={values.occupation} onChange={e => setValues({...values, occupation: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Monthly Income (₹)</label>
+                <input 
+                  type="number" min="0"
+                  placeholder="Income in ₹"
+                  className="premium-input"
+                  value={values.monthlyIncome} onChange={e => setValues({...values, monthlyIncome: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Residence Status</label>
+                <select 
+                  className="premium-select"
+                  value={values.homeType} onChange={e => setValues({...values, homeType: e.target.value})}
                 >
-                  {values.otpVerifyLoading ? 'Verifying...' : 'Submit OTP'}
-                </button>
+                  <option value="">Select Option</option>
+                  <option value="Own House">Own House</option>
+                  <option value="Rented House">Rented House</option>
+                </select>
               </div>
-              
-              <p className="text-[10px] text-slate-500">
-                OTP sent to <strong>{values.email}</strong>. Please check your inbox or spam folder.
-              </p>
             </div>
-          )}
-
-          {/* OTP Verification feedback messages */}
-          {values.otpError && (
-            <div className="bg-red-50 text-red-700 border border-red-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
-              ⚠️ {values.otpError}
-            </div>
-          )}
-          {values.otpSuccess && (
-            <div className="bg-emerald-50 text-emerald-700 border border-emerald-150 px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 mt-2">
-              ✓ {values.otpSuccess}
-            </div>
-          )}
-        </fieldset>
-
-        {/* Family Structure */}
-        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
-          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
-            <Shield size={12} /> Family Relations
-          </legend>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Father's Name</label>
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Collateral / Assets Description</label>
               <input 
                 type="text"
-                placeholder="Father's full name"
+                placeholder="e.g. Land (1 Acre), tractor, 2 cows"
                 className="premium-input"
-                value={values.fatherName} onChange={e => setValues({...values, fatherName: e.target.value})}
+                value={values.assets} onChange={e => setValues({...values, assets: e.target.value})}
               />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Mother's Name</label>
-              <input 
-                type="text"
-                placeholder="Mother's full name"
-                className="premium-input"
-                value={values.motherName} onChange={e => setValues({...values, motherName: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Spouse's Name</label>
-              <input 
-                type="text"
-                placeholder="Husband/Wife's name"
-                className="premium-input"
-                value={values.spouseName} onChange={e => setValues({...values, spouseName: e.target.value})}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1">
-            <div className="md:col-span-3">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Children Names (Separate with spaces)</label>
-              <input 
-                type="text"
-                placeholder="e.g. Amit Rohit Rahul"
-                className="premium-input"
-                value={values.childrenNames} onChange={e => setValues({...values, childrenNames: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Total Children</label>
-              <input 
-                type="number" min="0"
-                placeholder="0"
-                className="premium-input"
-                value={values.totalChildren} onChange={e => setValues({...values, totalChildren: e.target.value})}
-              />
-            </div>
-          </div>
-        </fieldset>
+          </fieldset>
+        )}
 
-        {/* Finance & Employment */}
-        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
-          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
-            <Briefcase size={12} /> Occupation & Financial Ratios
-          </legend>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="md:col-span-2">
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Occupation / Job</label>
-              <input 
-                type="text"
-                placeholder="e.g. Farming, Tailoring, Dairy"
-                className="premium-input"
-                value={values.occupation} onChange={e => setValues({...values, occupation: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Monthly Income (₹)</label>
-              <input 
-                type="number" min="0"
-                placeholder="Income in ₹"
-                className="premium-input"
-                value={values.monthlyIncome} onChange={e => setValues({...values, monthlyIncome: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Residence Status</label>
-              <select 
-                className="premium-select"
-                value={values.homeType} onChange={e => setValues({...values, homeType: e.target.value})}
-              >
-                <option value="">Select Option</option>
-                <option value="Own House">Own House</option>
-                <option value="Rented House">Rented House</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Collateral / Assets Description</label>
-            <input 
-              type="text"
-              placeholder="e.g. Land (1 Acre), tractor, 2 cows"
-              className="premium-input"
-              value={values.assets} onChange={e => setValues({...values, assets: e.target.value})}
-            />
-          </div>
-        </fieldset>
+        {/* Step 5: Document & Camera Capture */}
+        {(step === null || step === 5) && (
+          <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm animate-fade-in">
+            <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
+              <Camera size={12} /> Document & Photo Capture
+            </legend>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Customer Photo Column */}
+              <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Customer Photograph</span>
+                
+                {values.customerPhoto ? (
+                  <div className="relative w-32 h-32 rounded-full border-2 border-violet-100 overflow-hidden shadow-inner group">
+                    <img src={values.customerPhoto} alt="Customer Preview" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={() => setValues({...values, customerPhoto: ''})}
+                      className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
+                    >
+                      Retake Photo
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400">No Image</span>
+                  </div>
+                )}
+                
+                <label className="bg-violet-50 hover:bg-violet-100 text-violet-750 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
+                  Capture Customer Photo
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="user" 
+                    className="hidden" 
+                    onChange={(e) => handleImageCapture(e, 'customerPhoto', setValues, values)} 
+                  />
+                </label>
+              </div>
 
-        {/* Addresses */}
-        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
-          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
-            <MapPin size={12} /> Address Credentials
-          </legend>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Current Address *</label>
-              <textarea 
-                required rows="2"
-                placeholder="Verified current local address"
-                className="premium-input"
-                value={values.address} onChange={e => setValues({...values, address: e.target.value})}
-              ></textarea>
+              {/* Aadhaar Card Column */}
+              <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aadhaar Card Document</span>
+                
+                {values.aadhaarPhoto ? (
+                  <div className="relative w-48 h-28 rounded-xl border-2 border-violet-100 overflow-hidden shadow-inner group">
+                    <img src={values.aadhaarPhoto} alt="Aadhaar Preview" className="w-full h-full object-cover" />
+                    <button 
+                      type="button"
+                      onClick={() => setValues({...values, aadhaarPhoto: ''})}
+                      className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
+                    >
+                      Retake Aadhaar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-48 h-28 rounded-xl bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
+                    <span className="text-[10px] font-extrabold uppercase text-slate-400">No Document</span>
+                  </div>
+                )}
+                
+                <label className="bg-violet-50 hover:bg-violet-100 text-violet-755 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
+                  Capture Aadhaar Card
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment" 
+                    className="hidden" 
+                    onChange={(e) => handleImageCapture(e, 'aadhaarPhoto', setValues, values)} 
+                  />
+                </label>
+              </div>
             </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Permanent Address</label>
-              <textarea 
-                rows="2"
-                placeholder="Permanent home address (Leave blank if same)"
-                className="premium-input"
-                value={values.permanentAddress} onChange={e => setValues({...values, permanentAddress: e.target.value})}
-              ></textarea>
-            </div>
-          </div>
-        </fieldset>
-
-        {/* Document & Camera Capture */}
-        <fieldset className="border border-slate-100 p-5 rounded-2xl space-y-4 bg-slate-50/50 shadow-sm">
-          <legend className="text-xs font-bold text-violet-600 px-3 py-0.5 rounded-full bg-violet-50 border border-violet-100 flex items-center gap-1">
-            <Camera size={12} /> Document & Photo Capture
-          </legend>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Customer Photo Column */}
-            <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Customer Photograph</span>
-              
-              {values.customerPhoto ? (
-                <div className="relative w-32 h-32 rounded-full border-2 border-violet-100 overflow-hidden shadow-inner group">
-                  <img src={values.customerPhoto} alt="Customer Preview" className="w-full h-full object-cover" />
-                  <button 
-                    type="button"
-                    onClick={() => setValues({...values, customerPhoto: ''})}
-                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
-                  >
-                    Retake Photo
-                  </button>
-                </div>
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400">No Image</span>
-                </div>
-              )}
-              
-              <label className="bg-violet-50 hover:bg-violet-100 text-violet-750 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
-                Capture Customer Photo
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="user" 
-                  className="hidden" 
-                  onChange={(e) => handleImageCapture(e, 'customerPhoto', setValues, values)} 
-                />
-              </label>
-            </div>
-
-            {/* Aadhaar Card Column */}
-            <div className="flex flex-col items-center p-4 bg-white rounded-2xl border border-slate-150 shadow-xs space-y-3">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Aadhaar Card Document</span>
-              
-              {values.aadhaarPhoto ? (
-                <div className="relative w-48 h-28 rounded-xl border-2 border-violet-100 overflow-hidden shadow-inner group">
-                  <img src={values.aadhaarPhoto} alt="Aadhaar Preview" className="w-full h-full object-cover" />
-                  <button 
-                    type="button"
-                    onClick={() => setValues({...values, aadhaarPhoto: ''})}
-                    className="absolute inset-0 bg-slate-900/60 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs cursor-pointer"
-                  >
-                    Retake Aadhaar
-                  </button>
-                </div>
-              ) : (
-                <div className="w-48 h-28 rounded-xl bg-slate-50 border border-dashed border-slate-350 flex flex-col items-center justify-center text-slate-400">
-                  <span className="text-[10px] font-extrabold uppercase text-slate-400">No Document</span>
-                </div>
-              )}
-              
-              <label className="bg-violet-50 hover:bg-violet-100 text-violet-755 border border-violet-100 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer uppercase tracking-wider">
-                Capture Aadhaar Card
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  capture="environment" 
-                  className="hidden" 
-                  onChange={(e) => handleImageCapture(e, 'aadhaarPhoto', setValues, values)} 
-                />
-              </label>
-            </div>
-          </div>
-        </fieldset>
+          </fieldset>
+        )}
       </div>
     );
   };
@@ -1473,7 +1554,7 @@ const Customers = () => {
                   <Users size={16} /> Create Group
                 </button>
                 <button 
-                  onClick={() => { setShowModal(true); setError(''); setFormData(initialCustomerState); }}
+                  onClick={() => { setShowModal(true); setError(''); setFormData(initialCustomerState); setCustomerFormStep(1); }}
                   className="flex-1 sm:flex-initial bg-white hover:bg-slate-50 text-slate-800 px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition font-bold text-xs border border-slate-250 shadow-xs cursor-pointer"
                 >
                   <Plus size={16} /> Add Customer
@@ -1718,8 +1799,8 @@ const Customers = () => {
 
       {/* Add Customer Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-4xl overflow-hidden flex flex-col h-[92vh] sm:h-auto sm:max-h-[90vh]">
             <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
               <div className="text-left">
                 <h2 className="text-lg font-black text-slate-800 tracking-tight">Register New Borrower</h2>
@@ -1733,6 +1814,37 @@ const Customers = () => {
               </button>
             </div>
             
+            {/* Stepper Progress Header */}
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex overflow-x-auto gap-4 md:justify-between items-center text-xs font-semibold text-slate-500 scrollbar-none">
+              {[
+                { step: 1, label: 'Identity' },
+                { step: 2, label: 'Address' },
+                { step: 3, label: 'Family' },
+                { step: 4, label: 'Financial' },
+                { step: 5, label: 'Documents' }
+              ].map(s => {
+                const isActive = customerFormStep === s.step;
+                const isCompleted = customerFormStep > s.step;
+                return (
+                  <div key={s.step} className="flex items-center gap-2 shrink-0">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-bold text-[10px] transition-all duration-300 ${
+                      isActive ? 'bg-violet-600 border-violet-600 text-white shadow-md shadow-violet-500/25 scale-110' :
+                      isCompleted ? 'bg-emerald-50 border-emerald-250 text-emerald-600' :
+                      'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      {isCompleted ? <Check size={10} strokeWidth={3} /> : s.step}
+                    </span>
+                    <span className={`transition-all duration-300 ${isActive ? 'text-violet-600 font-bold' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {s.label}
+                    </span>
+                    {s.step < 5 && (
+                      <span className="hidden md:inline text-slate-350 font-normal font-mono">➔</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
             <div className="p-6 flex-1 overflow-y-auto">
               {error && (
                 <div className="mb-4 p-3 bg-rose-50 border border-rose-150 text-rose-700 rounded-xl text-xs font-bold text-left animate-fade-in flex items-center gap-2">
@@ -1742,23 +1854,44 @@ const Customers = () => {
               )}
               
               <form onSubmit={handleCreateCustomer} className="space-y-6">
-                {renderCustomerFieldsForm(formData, setFormData)}
+                {renderCustomerFieldsForm(formData, setFormData, customerFormStep)}
 
                 <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowModal(false)}
-                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
-                  >
-                    {loading ? 'Creating Account...' : 'Disburse Profile Registration'}
-                  </button>
+                  {customerFormStep === 1 ? (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowModal(false)}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => { setError(''); setCustomerFormStep(prev => prev - 1); }}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Previous
+                    </button>
+                  )}
+
+                  {customerFormStep < 5 ? (
+                    <button 
+                      type="button" 
+                      onClick={handleNextStep}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Next
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      disabled={loading}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
+                    >
+                      {loading ? 'Creating Account...' : 'Disburse Profile Registration'}
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -1768,8 +1901,8 @@ const Customers = () => {
 
       {/* Unified Group Builder Modal */}
       {showGroupModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[95vh]">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-4xl overflow-hidden flex flex-col h-[95vh] sm:h-auto sm:max-h-[95vh]">
             <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
               <div className="text-left">
                 <h2 className="text-lg font-black text-slate-800 tracking-tight">Unified Customer Group Builder</h2>
@@ -1781,6 +1914,34 @@ const Customers = () => {
               >
                 <X size={20} />
               </button>
+            </div>
+
+            {/* Stepper Progress Header */}
+            <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex gap-4 items-center text-xs font-semibold text-slate-500">
+              {[
+                { step: 1, label: 'Group Details' },
+                { step: 2, label: 'Members Roster' }
+              ].map(s => {
+                const isActive = groupFormStep === s.step;
+                const isCompleted = groupFormStep > s.step;
+                return (
+                  <div key={s.step} className="flex items-center gap-2">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-bold text-[10px] transition-all duration-300 ${
+                      isActive ? 'bg-violet-600 border-violet-600 text-white shadow-md shadow-violet-500/25 scale-110' :
+                      isCompleted ? 'bg-emerald-50 border-emerald-250 text-emerald-600' :
+                      'bg-white border-slate-200 text-slate-400'
+                    }`}>
+                      {isCompleted ? <Check size={10} strokeWidth={3} /> : s.step}
+                    </span>
+                    <span className={`transition-all duration-300 ${isActive ? 'text-violet-600 font-bold' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {s.label}
+                    </span>
+                    {s.step < 2 && (
+                      <span className="text-slate-350 font-normal font-mono">➔</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
             
             <div className="p-6 flex-1 overflow-y-auto">
@@ -1798,126 +1959,209 @@ const Customers = () => {
               )}
               
               <form onSubmit={handleCreateGroup} className="space-y-6">
-                {/* Group Details */}
-                <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-4 text-left">
-                  <h3 className="text-xs font-black text-violet-600 uppercase tracking-widest flex items-center gap-1.5">
-                    <Layers size={14} /> Basic Group Details
-                  </h3>
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Group Recipient Name *</label>
-                    <input 
-                      type="text" required
-                      placeholder="e.g. Radhe Mahila Bachat Gat / Bharat Sangha #5"
-                      className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-850 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-xs font-semibold"
-                      value={groupName} onChange={e => setGroupName(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                {/* Group Members List builder */}
-                <div className="space-y-4 text-left">
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-2">
-                    <h3 className="text-xs font-black text-slate-850 uppercase tracking-widest flex items-center gap-1.5">
-                      <Users size={14} className="text-violet-600" /> Group Members Roster
+                {/* Step 1: Group Basics */}
+                {groupFormStep === 1 && (
+                  <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 space-y-4 text-left animate-fade-in">
+                    <h3 className="text-xs font-black text-violet-600 uppercase tracking-widest flex items-center gap-1.5">
+                      <Layers size={14} /> Basic Group Details
                     </h3>
-                    <button 
-                      type="button" 
-                      onClick={handleAddMemberRow}
-                      className="bg-violet-50 hover:bg-violet-100 text-violet-700 px-3 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-bold border border-violet-100 shadow-xs cursor-pointer uppercase tracking-wider"
-                    >
-                      <Plus size={12} /> Add Member Row
-                    </button>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Group Recipient Name *</label>
+                      <input 
+                        type="text" required
+                        placeholder="e.g. Radhe Mahila Bachat Gat / Bharat Sangha #5"
+                        className="w-full p-2.5 border border-slate-350 rounded-xl text-slate-850 focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white text-xs font-semibold"
+                        value={groupName} onChange={e => setGroupName(e.target.value)}
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div className="space-y-5">
-                    {groupMembers.map((member, index) => (
-                      <div key={index} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/20 relative space-y-4 shadow-sm animate-scale-up">
-                        {/* Member index & Remove row button */}
-                        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Member Profile #{index + 1}</span>
-                          {groupMembers.length > 1 && (
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveMemberRow(index)}
-                              className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
-                              title="Delete Member Row"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                {/* Step 2: Group Members Roster */}
+                {groupFormStep === 2 && (
+                  <div className="space-y-4 text-left animate-fade-in">
+                    <div className="flex justify-between items-center border-b border-slate-100 pb-2">
+                      <h3 className="text-xs font-black text-slate-850 uppercase tracking-widest flex items-center gap-1.5">
+                        <Users size={14} className="text-violet-600" /> Group Members Roster
+                      </h3>
+                      <button 
+                        type="button" 
+                        onClick={handleAddMemberRow}
+                        className="bg-violet-50 hover:bg-violet-100 text-violet-700 px-3 py-1.5 rounded-lg flex items-center gap-1 text-[10px] font-bold border border-violet-100 shadow-xs cursor-pointer uppercase tracking-wider"
+                      >
+                        <Plus size={12} /> Add Member Row
+                      </button>
+                    </div>
+
+                    <div className="space-y-5">
+                      {groupMembers.map((member, index) => (
+                        <div key={index} className="border border-slate-150 rounded-2xl p-5 bg-slate-50/20 relative space-y-4 shadow-sm animate-scale-up">
+                          {/* Member index & Remove row button */}
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Member Profile #{index + 1}</span>
+                            {groupMembers.length > 1 && (
+                              <button 
+                                type="button" 
+                                onClick={() => handleRemoveMemberRow(index)}
+                                className="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition border border-transparent hover:border-rose-100 cursor-pointer"
+                                title="Delete Member Row"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Existing vs New radio picker */}
+                          <div className="flex gap-4 items-center">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Borrower Origin:</label>
+                            <div className="flex gap-4">
+                              <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                                <input 
+                                  type="radio" 
+                                  className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                                  checked={member.isExisting === true}
+                                  onChange={() => handleMemberChange(index, 'isExisting', true)}
+                                />
+                                Select Existing Customer
+                              </label>
+                              <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
+                                <input 
+                                  type="radio" 
+                                  className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
+                                  checked={member.isExisting === false}
+                                  onChange={() => handleMemberChange(index, 'isExisting', false)}
+                                />
+                                Register New Borrower
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Roster fields container */}
+                          {member.isExisting ? (
+                            <div className="bg-white p-4 rounded-xl border border-slate-150">
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Existing Customer Profile *</label>
+                              <select 
+                                required
+                                className="premium-select"
+                                value={member.customerId} 
+                                onChange={e => handleMemberChange(index, 'customerId', e.target.value)}
+                              >
+                                <option value="">Select a registered borrower</option>
+                                {customers.map(c => (
+                                  <option key={c._id} value={c._id}>
+                                    {c.name} (📞 {c.phone} | UIDAI Aadhaar: {c.aadhaarNumber || 'None'} | Rating: {c.creditGrade})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {/* Nested step indicator for this new borrower */}
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-100/60 p-3.5 rounded-xl border border-slate-200">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">
+                                  New Borrower Profile Step {member.memberStep || 1} of 5:
+                                </span>
+                                <span className="text-[10px] font-black text-violet-650 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                  {member.memberStep === 2 ? 'Address Details' : 
+                                   member.memberStep === 3 ? 'Family Relations' : 
+                                   member.memberStep === 4 ? 'Financial Profile' : 
+                                   member.memberStep === 5 ? 'KYC Documents' : 'Personal Identity'}
+                                </span>
+                              </div>
+
+                              {renderCustomerFieldsForm(member, (val) => {
+                                const updated = [...groupMembers];
+                                updated[index] = { ...member, ...val };
+                                setGroupMembers(updated);
+                              }, member.memberStep || 1)}
+
+                              {/* Inner Step Controls */}
+                              <div className="flex gap-2 justify-end pt-3 border-t border-slate-100 mt-2">
+                                {(member.memberStep || 1) > 1 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = [...groupMembers];
+                                      updated[index].memberStep = (member.memberStep || 1) - 1;
+                                      setGroupMembers(updated);
+                                    }}
+                                    className="px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 rounded-lg text-[10px] font-bold transition uppercase tracking-wider cursor-pointer"
+                                  >
+                                    Prev Step
+                                  </button>
+                                )}
+                                {(member.memberStep || 1) < 5 ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const curStep = member.memberStep || 1;
+                                      if (curStep === 1) {
+                                        if (!member.name?.trim()) { alert(`Member #${index + 1}: Name is required`); return; }
+                                        if (!member.phone?.trim()) { alert(`Member #${index + 1}: Phone is required`); return; }
+                                        if (!member.email?.trim()) { alert(`Member #${index + 1}: Email is required`); return; }
+                                        if (!member.emailVerified) { alert(`Member #${index + 1}: Please verify email first`); return; }
+                                      } else if (curStep === 2) {
+                                        if (!member.address?.trim()) { alert(`Member #${index + 1}: Current Address is required`); return; }
+                                      }
+                                      const updated = [...groupMembers];
+                                      updated[index].memberStep = curStep + 1;
+                                      setGroupMembers(updated);
+                                    }}
+                                    className="px-3 py-1.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-lg text-[10px] font-bold transition uppercase tracking-wider cursor-pointer"
+                                  >
+                                    Next Step
+                                  </button>
+                                ) : (
+                                  <span className="text-[10px] text-emerald-600 font-extrabold flex items-center gap-1.5 px-3 py-1.5 border border-emerald-100 bg-emerald-50 rounded-lg shadow-sm">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Registration Ready
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           )}
                         </div>
-
-                        {/* Existing vs New radio picker */}
-                        <div className="flex gap-4 items-center">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Borrower Origin:</label>
-                          <div className="flex gap-4">
-                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
-                              <input 
-                                type="radio" 
-                                className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
-                                checked={member.isExisting === true}
-                                onChange={() => handleMemberChange(index, 'isExisting', true)}
-                              />
-                              Select Existing Customer
-                            </label>
-                            <label className="flex items-center gap-1.5 text-xs font-bold text-slate-700 cursor-pointer select-none">
-                              <input 
-                                type="radio" 
-                                className="w-3.5 h-3.5 text-violet-600 focus:ring-violet-500 border-slate-350 cursor-pointer"
-                                checked={member.isExisting === false}
-                                onChange={() => handleMemberChange(index, 'isExisting', false)}
-                              />
-                              Register New Borrower
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Roster fields container */}
-                        {member.isExisting ? (
-                          <div className="bg-white p-4 rounded-xl border border-slate-150">
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Select Existing Customer Profile *</label>
-                            <select 
-                              required
-                              className="premium-select"
-                              value={member.customerId} 
-                              onChange={e => handleMemberChange(index, 'customerId', e.target.value)}
-                            >
-                              <option value="">Select a registered borrower</option>
-                              {customers.map(c => (
-                                <option key={c._id} value={c._id}>
-                                  {c.name} (📞 {c.phone} | UIDAI Aadhaar: {c.aadhaarNumber || 'None'} | Rating: {c.creditGrade})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        ) : (
-                          // Render full registration form in builder
-                          renderCustomerFieldsForm(member, (val) => {
-                            const updated = [...groupMembers];
-                            updated[index] = { ...member, ...val };
-                            setGroupMembers(updated);
-                          })
-                        )}
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowGroupModal(false)}
-                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    disabled={groupLoading}
-                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
-                  >
-                    {groupLoading ? 'Building Group...' : 'Save & Disburse Joint Group'}
-                  </button>
+                  {groupFormStep === 1 ? (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowGroupModal(false)}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => { setGroupError(''); setGroupFormStep(1); }}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Previous
+                    </button>
+                  )}
+
+                  {groupFormStep === 1 ? (
+                    <button 
+                      type="button" 
+                      onClick={handleNextGroupStep}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Next
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      disabled={groupLoading}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider disabled:opacity-50"
+                    >
+                      {groupLoading ? 'Building Group...' : 'Save & Disburse Joint Group'}
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -1969,8 +2213,8 @@ const Customers = () => {
 
       {/* Add Member to Group Modal */}
       {showAddMemberModal && (
-        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[85vh]">
             <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
               <div className="text-left">
                 <h2 className="text-lg font-black text-slate-800 tracking-tight">Add Group Member</h2>
@@ -1983,6 +2227,39 @@ const Customers = () => {
                 <X size={20} />
               </button>
             </div>
+
+            {/* Stepper Progress Header for New Member */}
+            {addMemberType === 'new' && (
+              <div className="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex overflow-x-auto gap-4 md:justify-between items-center text-xs font-semibold text-slate-500 scrollbar-none">
+                {[
+                  { step: 1, label: 'Identity' },
+                  { step: 2, label: 'Address' },
+                  { step: 3, label: 'Family' },
+                  { step: 4, label: 'Financial' },
+                  { step: 5, label: 'Documents' }
+                ].map(s => {
+                  const isActive = addMemberFormStep === s.step;
+                  const isCompleted = addMemberFormStep > s.step;
+                  return (
+                    <div key={s.step} className="flex items-center gap-2 shrink-0">
+                      <span className={`w-6 h-6 rounded-full flex items-center justify-center border font-bold text-[10px] transition-all duration-300 ${
+                        isActive ? 'bg-violet-600 border-violet-600 text-white shadow-md shadow-violet-500/25 scale-110' :
+                        isCompleted ? 'bg-emerald-50 border-emerald-250 text-emerald-600' :
+                        'bg-white border-slate-200 text-slate-400'
+                      }`}>
+                        {isCompleted ? <Check size={10} strokeWidth={3} /> : s.step}
+                      </span>
+                      <span className={`transition-all duration-300 ${isActive ? 'text-violet-600 font-bold' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
+                        {s.label}
+                      </span>
+                      {s.step < 5 && (
+                        <span className="hidden md:inline text-slate-355 font-normal font-mono">➔</span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             
             <div className="p-6 flex-1 overflow-y-auto">
               <form onSubmit={handleAddMemberSubmit} className="space-y-6">
@@ -2029,23 +2306,44 @@ const Customers = () => {
                     </select>
                   </div>
                 ) : (
-                  renderCustomerFieldsForm(addMemberFormData, setAddMemberFormData)
+                  renderCustomerFieldsForm(addMemberFormData, setAddMemberFormData, addMemberFormStep)
                 )}
 
                 <div className="pt-5 border-t border-slate-100 mt-6 flex gap-3.5 bg-slate-50 -mx-6 -mb-6 p-6">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAddMemberModal(false)}
-                    className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
-                  >
-                    Confirm Member Addition
-                  </button>
+                  {addMemberType === 'existing' || addMemberFormStep === 1 ? (
+                    <button 
+                      type="button" 
+                      onClick={() => setShowAddMemberModal(false)}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Cancel
+                    </button>
+                  ) : (
+                    <button 
+                      type="button" 
+                      onClick={() => { setError(''); setAddMemberFormStep(prev => prev - 1); }}
+                      className="w-1/2 bg-white text-slate-700 border border-slate-250 p-3 rounded-xl font-bold hover:bg-slate-50 transition cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Previous
+                    </button>
+                  )}
+
+                  {addMemberType === 'new' && addMemberFormStep < 5 ? (
+                    <button 
+                      type="button" 
+                      onClick={handleNextAddMemberStep}
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Next
+                    </button>
+                  ) : (
+                    <button 
+                      type="submit" 
+                      className="w-1/2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white p-3 rounded-xl font-bold transition shadow-md shadow-violet-500/15 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Confirm Member Addition
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
