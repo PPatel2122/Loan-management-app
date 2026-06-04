@@ -5,6 +5,7 @@ import {
   ClipboardList, Calendar, DollarSign, Check, Users, 
   AlertCircle, Clock, CheckCircle2, ChevronRight, X
 } from 'lucide-react';
+import ReceiptModal from '../components/ReceiptModal';
 
 const Tasks = () => {
   const { user } = useContext(AuthContext);
@@ -26,7 +27,12 @@ const Tasks = () => {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [activeInstallment, setActiveInstallment] = useState(null);
   const [collectedAmount, setCollectedAmount] = useState('');
+  const [paymentMode, setPaymentMode] = useState('Cash');
   const [processingPayment, setProcessingPayment] = useState(false);
+
+  // Receipt Modal state
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [activeTransaction, setActiveTransaction] = useState(null);
 
   // Non-Payment Reason modal states
   const [showDelayModal, setShowDelayModal] = useState(false);
@@ -54,17 +60,31 @@ const Tasks = () => {
   // Quick action: mark installment fully paid
   const handleMarkPaid = async (inst) => {
     const totalDue = inst.remainingAmount + inst.penalty;
-    if (!window.confirm(`Mark installment for "${inst.loanId?.groupId?.name || 'Group'}" as fully paid (Collected: ₹${totalDue.toLocaleString('en-IN')})?`)) {
-      return;
-    }
+    
+    const method = window.prompt(
+      `Mark installment for "${inst.loanId?.groupId?.name || 'Group'}" as fully paid?\nEnter payment method (Cash / UPI / Bank Transfer):`,
+      "Cash"
+    );
+    
+    if (method === null) return; // User cancelled
+    
+    const cleanMethod = ['Cash', 'UPI', 'Bank Transfer'].includes(method.trim()) ? method.trim() : 'Cash';
 
     try {
-      await api.put(`/installments/${inst._id}`, { 
+      const { data } = await api.put(`/installments/${inst._id}`, { 
         remainingAmount: 0, 
         penalty: 0,
-        status: 'Paid'
+        status: 'Paid',
+        paymentMode: cleanMethod,
+        amountPaid: totalDue
       });
       alert('Payment recorded successfully!');
+      
+      if (data.transaction) {
+        setActiveTransaction(data.transaction);
+        setShowReceiptModal(true);
+      }
+      
       fetchInstallments();
     } catch (err) {
       alert(err.response?.data?.message || 'Error recording payment');
@@ -116,15 +136,23 @@ const Tasks = () => {
 
       const status = newRemainingAmount <= 0 ? 'Paid' : activeInstallment.status;
 
-      await api.put(`/installments/${activeInstallment._id}`, {
+      const { data } = await api.put(`/installments/${activeInstallment._id}`, {
         remainingAmount: newRemainingAmount,
         penalty: newPenalty,
-        status
+        status,
+        paymentMode,
+        amountPaid: amt
       });
 
       alert('Collection recorded successfully!');
       setShowPaymentModal(false);
       setActiveInstallment(null);
+      
+      if (data.transaction) {
+        setActiveTransaction(data.transaction);
+        setShowReceiptModal(true);
+      }
+      
       fetchInstallments();
     } catch (err) {
       alert(err.response?.data?.message || 'Error recording custom payment');
@@ -361,6 +389,20 @@ const Tasks = () => {
                 />
               </div>
 
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment Mode *</label>
+                <select 
+                  required
+                  value={paymentMode}
+                  onChange={e => setPaymentMode(e.target.value)}
+                  className="premium-select w-full"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -436,6 +478,13 @@ const Tasks = () => {
           </div>
         </div>
       )}
+
+      {/* Receipt View Modal */}
+      <ReceiptModal 
+        isOpen={showReceiptModal} 
+        transaction={activeTransaction} 
+        onClose={() => { setShowReceiptModal(false); setActiveTransaction(null); }}
+      />
     </div>
   );
 };

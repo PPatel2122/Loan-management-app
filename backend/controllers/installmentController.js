@@ -1,14 +1,19 @@
 const Installment = require('../models/Installment');
 const Loan = require('../models/Loan');
+const Transaction = require('../models/Transaction');
 
 // @desc    Update an installment (mark paid, partial pay, remove penalty)
 // @route   PUT /api/installments/:id
 // @access  Private
 const updateInstallment = async (req, res) => {
-  const { status, penalty, remainingAmount, paidDate, nonPaymentReason } = req.body;
+  const { status, penalty, remainingAmount, paidDate, nonPaymentReason, paymentMode } = req.body;
   try {
     const installment = await Installment.findById(req.params.id);
     if (!installment) return res.status(404).json({ message: 'Installment not found' });
+
+    const previousPenalty = installment.penalty || 0;
+    const previousRemainingAmount = installment.remainingAmount || 0;
+    const previousTotalDue = previousRemainingAmount + previousPenalty;
 
     if (status) installment.status = status;
     if (penalty !== undefined) installment.penalty = penalty;
@@ -38,7 +43,37 @@ const updateInstallment = async (req, res) => {
       }
     }
 
-    res.json(installment);
+    // Record payment Transaction
+    const newPenalty = installment.penalty || 0;
+    const newRemainingAmount = installment.remainingAmount || 0;
+    const newTotalDue = newRemainingAmount + newPenalty;
+
+    const amountPaid = req.body.amountPaid !== undefined ? parseFloat(req.body.amountPaid) : (previousTotalDue - newTotalDue);
+    let txn = null;
+
+    if (amountPaid > 0) {
+      txn = await Transaction.create({
+        loanId: installment.loanId,
+        installmentId: installment._id,
+        collectorId: req.user._id,
+        amount: amountPaid,
+        paymentMode: req.body.paymentMode || 'Cash'
+      });
+
+      txn = await Transaction.findById(txn._id)
+        .populate({
+          path: 'loanId',
+          populate: { path: 'groupId', select: 'name' }
+        })
+        .populate('collectorId', 'name username employeeId');
+    }
+
+    const resultObj = installment.toObject();
+    if (txn) {
+      resultObj.transaction = txn.toObject();
+    }
+
+    res.json(resultObj);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -85,13 +120,14 @@ const bulkCollectInstallments = async (req, res) => {
     const loanIdsToCheck = new Set();
 
     for (const payment of payments) {
-      const { installmentId, collectedAmount } = payment;
+      const { installmentId, collectedAmount, paymentMode } = payment;
       const installment = await Installment.findById(installmentId);
       
       if (installment) {
         loanIdsToCheck.add(installment.loanId.toString());
 
         let amt = parseFloat(collectedAmount) || 0;
+        const initialAmt = amt;
         const totalDue = installment.remainingAmount + installment.penalty;
 
         if (amt >= totalDue) {
@@ -120,6 +156,17 @@ const bulkCollectInstallments = async (req, res) => {
 
         await installment.save();
         updatedInstallments.push(installment);
+
+        // Record payment Transaction
+        if (initialAmt > 0) {
+          await Transaction.create({
+            loanId: installment.loanId,
+            installmentId: installment._id,
+            collectorId: req.user._id,
+            amount: initialAmt,
+            paymentMode: paymentMode || req.body.paymentMode || 'Cash'
+          });
+        }
       }
     }
 
@@ -210,12 +257,25 @@ const collectLoanPayment = async (req, res) => {
       await loan.save();
     }
 
+    const appliedAmount = amtToApply - remainingPayment;
+    let txn = null;
+
+    if (appliedAmount > 0) {
+      txn = await Transaction.create({
+        loanId,
+        collectorId: req.user._id,
+        amount: appliedAmount,
+        paymentMode: req.body.paymentMode || 'Cash'
+      });
+    }
+
     res.json({
       message: 'Bulk payment processed successfully',
-      appliedAmount: amtToApply - remainingPayment,
+      appliedAmount,
       changeReturned: remainingPayment,
       installmentsUpdated: updated.length,
-      loanStatus: loan.status
+      loanStatus: loan.status,
+      transaction: txn
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

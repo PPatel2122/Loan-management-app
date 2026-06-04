@@ -1,15 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users, IndianRupee, Landmark, History, Coins, X, Printer } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertTriangle, Edit2, Users, IndianRupee, Landmark, History, Coins, X, Printer, Receipt } from 'lucide-react';
+import ReceiptModal from '../components/ReceiptModal';
 
 const LoanDetails = () => {
   const { id } = useParams();
   const [loan, setLoan] = useState(null);
   const [installments, setInstallments] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingInst, setEditingInst] = useState(null);
   const [editFormData, setEditFormData] = useState({ remainingAmount: '', penalty: '', status: '' });
+  
+  // Real transaction ledger modal states
+  const [showTxnModal, setShowTxnModal] = useState(false);
+  const [selectedTxn, setSelectedTxn] = useState(null);
+
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [receiptNumber, setReceiptNumber] = useState('');
   const [installmentNum, setInstallmentNum] = useState(0);
@@ -17,6 +24,7 @@ const LoanDetails = () => {
   // Custom / Bulk Payment states
   const [showCustomPaymentModal, setShowCustomPaymentModal] = useState(false);
   const [customPaymentAmount, setCustomPaymentAmount] = useState('');
+  const [customPaymentMode, setCustomPaymentMode] = useState('Cash');
   const [savingCustomPayment, setSavingCustomPayment] = useState(false);
 
   useEffect(() => {
@@ -28,6 +36,9 @@ const LoanDetails = () => {
       const { data } = await api.get(`/loans/${id}`);
       setLoan(data.loan);
       setInstallments(data.installments);
+      
+      const txnRes = await api.get(`/transactions?loanId=${id}`);
+      setTransactions(txnRes.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -43,12 +54,31 @@ const LoanDetails = () => {
   };
 
   const markPaid = async (instId) => {
-    if (!window.confirm("Mark this EMI as fully paid?")) return;
+    const method = window.prompt(
+      "Mark this EMI as fully paid?\nEnter payment method (Cash / UPI / Bank Transfer):",
+      "Cash"
+    );
+    if (method === null) return;
+    
+    const cleanMethod = ['Cash', 'UPI', 'Bank Transfer'].includes(method.trim()) ? method.trim() : 'Cash';
+    
     try {
-      await api.put(`/installments/${instId}`, { remainingAmount: 0 });
-      fetchData(); // refresh
+      const { data } = await api.put(`/installments/${instId}`, { 
+        remainingAmount: 0,
+        status: 'Paid',
+        paymentMode: cleanMethod
+      });
+      alert('Payment recorded successfully!');
+      
+      if (data.transaction) {
+        setSelectedTxn(data.transaction);
+        setShowTxnModal(true);
+      }
+      
+      fetchData();
     } catch (err) {
       console.error(err);
+      alert(err.response?.data?.message || 'Error recording payment');
     }
   };
 
@@ -76,9 +106,16 @@ const LoanDetails = () => {
       const { data } = await api.post('/installments/loan-payment', {
         loanId: id,
         paymentAmount: amount,
+        paymentMode: customPaymentMode
       });
       setShowCustomPaymentModal(false);
       alert(data.message + `\n\nApplied Amount: ₹${data.appliedAmount.toLocaleString('en-IN')}` + (data.changeReturned > 0 ? `\nChange Returned: ₹${data.changeReturned.toLocaleString('en-IN')}` : ''));
+      
+      if (data.transaction) {
+        setSelectedTxn(data.transaction);
+        setShowTxnModal(true);
+      }
+      
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || err.message);
@@ -305,6 +342,79 @@ const LoanDetails = () => {
                     </tr>
                   );
                 })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Transaction History Ledger */}
+      <div className="space-y-4 text-left">
+        <h2 className="text-lg font-black text-slate-800 flex items-center gap-2">
+          <Receipt size={18} className="text-violet-600" /> Payment & Collections History
+        </h2>
+        
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse whitespace-nowrap">
+              <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
+                <tr>
+                  <th className="px-6 py-4">Receipt Number</th>
+                  <th className="px-6 py-4">Collection Date</th>
+                  <th className="px-6 py-4">Payment Method</th>
+                  <th className="px-6 py-4">Amount Paid</th>
+                  <th className="px-6 py-4">Collected By</th>
+                  <th className="px-6 py-4 text-right">Statements</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {transactions.map((txn) => (
+                  <tr key={txn._id} className="hover:bg-slate-50/50 transition">
+                    <td className="px-6 py-4 font-mono font-bold text-slate-700">{txn.receiptNumber}</td>
+                    <td className="px-6 py-4 text-slate-650">
+                      {new Date(txn.collectedDate).toLocaleDateString('en-IN', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })} at {new Date(txn.collectedDate).toLocaleTimeString('en-IN', {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                        txn.paymentMode === 'UPI' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' :
+                        txn.paymentMode === 'Bank Transfer' ? 'bg-blue-50 text-blue-700 border border-blue-100' :
+                        'bg-amber-50 text-amber-700 border border-amber-100'
+                      }`}>
+                        {txn.paymentMode}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-black text-slate-850">₹{txn.amount.toLocaleString('en-IN')}</td>
+                    <td className="px-6 py-4 font-semibold text-slate-700">
+                      {txn.collectorId?.name || 'Operator'} <span className="font-mono text-[9px] text-slate-400">({txn.collectorId?.employeeId || '—'})</span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => {
+                          setSelectedTxn(txn);
+                          setShowTxnModal(true);
+                        }}
+                        className="text-violet-700 hover:text-violet-900 bg-violet-50 hover:bg-violet-100 border border-violet-100 px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1 uppercase tracking-wider text-[9px] cursor-pointer ml-auto"
+                      >
+                        <Receipt size={12} /> View Slip
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {transactions.length === 0 && (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center text-slate-400 font-semibold italic bg-white">
+                      No payments recorded yet in the digital transaction ledger.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -544,6 +654,20 @@ const LoanDetails = () => {
                 />
               </div>
 
+              <div className="text-left">
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment Mode *</label>
+                <select 
+                  required
+                  value={customPaymentMode}
+                  onChange={e => setCustomPaymentMode(e.target.value)}
+                  className="premium-select w-full"
+                >
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
+                </select>
+              </div>
+
               <div className="flex flex-wrap gap-2 text-left">
                 <button
                   type="button"
@@ -586,6 +710,13 @@ const LoanDetails = () => {
           </div>
         </div>
       )}
+
+      {/* Real Transaction Receipt Modal */}
+      <ReceiptModal 
+        isOpen={showTxnModal}
+        transaction={selectedTxn}
+        onClose={() => { setShowTxnModal(false); setSelectedTxn(null); }}
+      />
     </div>
   );
 };
