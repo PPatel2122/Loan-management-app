@@ -17,6 +17,9 @@ const sendOTPEmail = async (email, otp) => {
         },
       });
     } else {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('SMTP credentials (SMTP_HOST, SMTP_USER, SMTP_PASS) are not configured in production environment variables.');
+      }
       // Dynamic Ethereal fallback configuration to avoid expired credentials
       const testAccount = await nodemailer.createTestAccount();
       transporter = nodemailer.createTransport({
@@ -67,6 +70,9 @@ Ekaakshara Finance Services`,
     }
   } catch (error) {
     console.error(`[EMAIL SERVICE] Failed to send email to ${email}:`, error.message);
+    if (process.env.NODE_ENV === 'production') {
+      throw error;
+    }
     // Do not throw the error to prevent local testing without internet from failing,
     // since the OTP is already logged to the console.
   }
