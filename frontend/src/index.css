@@ -150,14 +150,24 @@
 
 /* Print Receipt Stylesheet */
 @media print {
+  /* Scale root font size so all rem sizes scale down proportionally */
   html {
     font-size: 11px !important;
+  }
+
+  /* Force the printed document to be exactly one page and hide overflow */
+  html, body {
+    height: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
   }
 
   /* Hide all application containers by default */
   body {
     visibility: hidden !important;
-    background: white !important;
   }
 
   /* Make sure receipt printing areas and their children are visible */
@@ -169,7 +179,6 @@
   }
 
   /* Reset layout constraints on all parent containers of the print areas */
-  body, 
   #root, 
   #root > div, 
   div[class*="inset-0"]:not(#receipt-print-area):not(#printable-receipt), 
@@ -189,21 +198,21 @@
     padding: 0 !important;
   }
 
-  /* Position and center the receipt print card in the exact middle of the page */
+  /* Position and center the receipt print card in the exact middle of the single page */
   #receipt-print-area,
   #printable-receipt {
-    position: fixed !important;
+    position: absolute !important;
     left: 50% !important;
     top: 50% !important;
     transform: translate(-50%, -50%) !important;
     width: 90% !important;
-    max-width: 380px !important; /* Compact receipt layout */
+    max-width: 360px !important; /* Compact receipt card width */
     height: auto !important;
     background: white !important;
-    padding: 1.25rem !important; /* Compact padding */
+    padding: 1.25rem !important;
     margin: 0 !important;
     box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important; /* Clean light border */
+    border: 1px solid #e2e8f0 !important;
     border-radius: 20px !important;
     box-sizing: border-box !important;
     display: block !important;
