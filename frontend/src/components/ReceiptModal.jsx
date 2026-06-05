@@ -49,37 +49,6 @@ const ReceiptModal = ({ isOpen, transaction, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center p-4 z-99 animate-fade-in no-print">
-      {/* Print-only CSS block to hide rest of screen when window.print() is called */}
-      <style>{`
-        @media print {
-          /* Hide all application containers */
-          body {
-            visibility: hidden;
-          }
-          /* Show only the printable receipt */
-          #printable-receipt, #printable-receipt * {
-            visibility: visible;
-          }
-          #printable-receipt {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            z-index: 99999;
-            padding: 1.5cm !important;
-            border: none !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-          }
-          /* Suppress headers, footers and page margins */
-          @page {
-            margin: 0;
-          }
-        }
-      `}</style>
-
       <div className="bg-white w-full max-w-md rounded-3xl border border-slate-100 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] relative animate-scale-up">
         {/* Header toolbar */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">

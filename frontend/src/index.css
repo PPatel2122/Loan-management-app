@@ -150,24 +150,59 @@
 
 /* Print Receipt Stylesheet */
 @media print {
+  /* Hide all application containers by default */
   body {
-    visibility: hidden;
+    visibility: hidden !important;
+    background: white !important;
   }
-  #receipt-print-area, #receipt-print-area * {
-    visibility: visible;
+
+  /* Make sure receipt printing areas and their children are visible */
+  #receipt-print-area,
+  #receipt-print-area *,
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible !important;
   }
-  #receipt-print-area {
-    position: fixed;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: white;
-    z-index: 99999;
-    padding: 1.5cm !important;
-    border: none !important;
+
+  /* Reset layout constraints on all parent containers of the print areas */
+  body, 
+  #root, 
+  #root > div, 
+  div[class*="inset-0"], 
+  div[class*="bg-white"], 
+  main {
+    position: static !important;
+    display: block !important;
+    overflow: visible !important;
+    max-height: none !important;
+    height: auto !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    transform: none !important;
+    background: transparent !important;
     box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
   }
+
+  /* Style the receipt print areas to occupy the full page without boundary clipping */
+  #receipt-print-area,
+  #printable-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    background: white !important;
+    padding: 1.5cm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
   @page {
     margin: 0;
   }
