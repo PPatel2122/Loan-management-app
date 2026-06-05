@@ -123,10 +123,13 @@ const getCustomers = async (req, res) => {
     }
 
     const rawCustomers = await Customer.find(filter).sort({ createdAt: -1 });
+    const includeRisk = req.query.includeRisk === 'true';
     const customers = [];
     for (const cust of rawCustomers) {
       const custObj = cust.toObject();
-      custObj.riskAnalysis = await calculateRiskScore(custObj);
+      if (includeRisk) {
+        custObj.riskAnalysis = await calculateRiskScore(custObj);
+      }
       customers.push(custObj);
     }
     res.json(customers);

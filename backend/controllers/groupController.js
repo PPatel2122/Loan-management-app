@@ -83,9 +83,15 @@ const getGroups = async (req, res) => {
       .populate('members')
       .populate('collector', 'name username')
       .sort({ createdAt: -1 });
+    
+    const includeRisk = req.query.includeRisk === 'true';
     const groups = [];
     for (const g of rawGroups) {
-      groups.push(await processGroupMembers(g));
+      if (includeRisk) {
+        groups.push(await processGroupMembers(g));
+      } else {
+        groups.push(g.toObject());
+      }
     }
     res.json(groups);
   } catch (error) {
