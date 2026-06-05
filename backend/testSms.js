@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('./config/env');
 const { sendSMS } = require('./services/smsService');
 
 const test = async () => {
