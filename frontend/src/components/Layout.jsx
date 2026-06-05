@@ -19,7 +19,7 @@ const Layout = () => {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
       {/* Main Content Area */}
-      <div className="flex-1 md:ml-64 flex flex-col w-full min-h-screen transition-premium">
+      <div className="flex-1 md:ml-64 flex flex-col min-h-screen transition-premium min-w-0">
         
         {/* Glassmorphic Sticky Header */}
         <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-md border-b border-slate-100 h-16 flex items-center justify-between px-6 md:px-10 shadow-sm shadow-slate-200/20">
@@ -58,7 +58,7 @@ const Layout = () => {
         </header>
         
         {/* Main Content Container with elegant padding and max viewport width protection */}
-        <main className="flex-1 p-6 pb-24 md:p-10 overflow-y-auto w-full max-w-[100vw] bg-gradient-to-b from-slate-50/50 to-slate-100/30">
+        <main className="flex-1 p-6 pb-24 md:p-10 overflow-y-auto w-full max-w-full min-w-0 bg-gradient-to-b from-slate-50/50 to-slate-100/30">
           <div className="max-w-7xl mx-auto animate-slide-up">
             <Outlet />
           </div>

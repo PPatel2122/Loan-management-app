@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
-import { Plus, Eye, Trash2, X, Users, CreditCard, Calendar, Percent, CalendarDays } from 'lucide-react';
+import { Plus, Eye, Trash2, X, Users, CreditCard, Calendar, Percent, CalendarDays, Search } from 'lucide-react';
 
 const Loans = () => {
   const { user } = useContext(AuthContext);
@@ -22,6 +22,7 @@ const Loans = () => {
   });
 
   const [activeTab, setActiveTab] = useState('active');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchLoans();
@@ -116,6 +117,10 @@ const Loans = () => {
   };
 
   const filteredLoans = loans.filter(loan => {
+    const groupName = loan.groupId?.name || 'Unknown Group';
+    const matchesSearch = groupName.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+
     if (activeTab === 'active') {
       return loan.status === 'Active' || loan.status === 'Completed' || loan.status === 'Defaulted';
     } else {
@@ -171,9 +176,23 @@ const Loans = () => {
         </button>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+          <Search size={16} />
+        </span>
+        <input 
+          type="text"
+          placeholder="Search by JLG group name..."
+          className="w-full pl-10 pr-4 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       {/* Desktop view (table) */}
-      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden w-full max-w-full">
+        <div className="overflow-x-auto w-full">
           <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
               <tr>

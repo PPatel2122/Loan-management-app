@@ -2,11 +2,12 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../api/axios';
-import { Eye, Trash2, Users, Archive, Check } from 'lucide-react';
+import { Eye, Trash2, Users, Archive, Check, Search } from 'lucide-react';
 
 const CompletedLoans = () => {
   const { user } = useContext(AuthContext);
   const [loans, setLoans] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchLoans();
@@ -34,6 +35,11 @@ const CompletedLoans = () => {
     }
   };
 
+  const filteredLoans = loans.filter(loan => {
+    const groupName = loan.groupId?.name || 'Unknown Group';
+    return groupName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -47,9 +53,23 @@ const CompletedLoans = () => {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="relative max-w-md">
+        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+          <Search size={16} />
+        </span>
+        <input 
+          type="text"
+          placeholder="Search by group name..."
+          className="w-full pl-10 pr-4 py-2.5 border border-slate-350 rounded-xl focus:ring-2 focus:ring-violet-500 focus:outline-none text-xs font-semibold bg-white text-slate-800"
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+      </div>
+
       {/* Desktop view (table) */}
-      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden w-full max-w-full">
+        <div className="overflow-x-auto w-full">
           <table className="w-full text-left whitespace-nowrap border-collapse">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
               <tr>
@@ -62,7 +82,7 @@ const CompletedLoans = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loans.map((loan) => {
+              {filteredLoans.map((loan) => {
                 const groupName = loan.groupId?.name || 'Unknown Group';
                 return (
                   <tr key={loan._id} className="hover:bg-slate-50/60 transition cursor-pointer">
@@ -103,7 +123,7 @@ const CompletedLoans = () => {
                   </tr>
                 );
               })}
-              {loans.length === 0 && (
+              {filteredLoans.length === 0 && (
                 <tr>
                   <td colSpan="6" className="px-6 py-12 text-center text-slate-400 font-medium italic bg-white">No archived completed loans found.</td>
                 </tr>
@@ -115,7 +135,7 @@ const CompletedLoans = () => {
 
       {/* Mobile view (cards) */}
       <div className="block md:hidden space-y-4">
-        {loans.map((loan) => {
+        {filteredLoans.map((loan) => {
           const groupName = loan.groupId?.name || 'Unknown Group';
           return (
             <div key={loan._id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-xs space-y-3.5">
@@ -167,7 +187,7 @@ const CompletedLoans = () => {
             </div>
           );
         })}
-        {loans.length === 0 && (
+        {filteredLoans.length === 0 && (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-medium italic border border-slate-100">
             No archived completed loans found.
           </div>

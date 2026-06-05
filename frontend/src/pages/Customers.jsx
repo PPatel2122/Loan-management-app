@@ -1606,8 +1606,8 @@ const Customers = () => {
               {loadingGroups ? (
                 <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">Loading Microfinance groups...</div>
               ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden w-full max-w-full">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left whitespace-nowrap border-collapse">
                       <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                         <tr>
@@ -1704,8 +1704,8 @@ const Customers = () => {
               {loadingCustomers ? (
                 <div className="text-center py-12 text-slate-400 font-semibold animate-pulse">Syncing customer records...</div>
               ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                  <div className="overflow-x-auto">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden w-full max-w-full">
+                  <div className="overflow-x-auto w-full">
                     <table className="w-full text-left whitespace-nowrap border-collapse">
                       <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[10px] uppercase tracking-widest">
                         <tr>

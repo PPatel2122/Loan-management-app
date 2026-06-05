@@ -201,25 +201,28 @@
 
   /* Position and center the receipt print card in the exact middle of the single page */
   #receipt-print-area,
-  #printable-receipt {
-    position: fixed !important;
-    left: 50% !important;
-    top: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: 90% !important;
-    max-width: 360px !important; /* Compact receipt card width */
-    height: auto !important;
-    background: white !important;
-    padding: 1.25rem !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 20px !important;
-    box-sizing: border-box !important;
-    display: block !important;
-    overflow: visible !important;
-    z-index: 99999 !important;
-  }
+#printable-receipt {
+  position: absolute !important;
+
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+
+  margin: auto !important;
+
+  width: 360px !important;
+  height: fit-content !important;
+
+  background: white !important;
+  padding: 1.25rem !important;
+
+  box-shadow: none !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 20px !important;
+
+  display: block !important;
+}
 
   /* Compact spacing for child elements to guarantee one-page fit */
   #receipt-print-area > * + *,
