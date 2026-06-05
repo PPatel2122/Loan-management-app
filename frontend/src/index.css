@@ -150,18 +150,25 @@
 
 /* Print Receipt Stylesheet */
 @media print {
-  body * {
+  body {
     visibility: hidden;
   }
   #receipt-print-area, #receipt-print-area * {
     visibility: visible;
   }
   #receipt-print-area {
-    position: absolute;
+    position: fixed;
     left: 0;
     top: 0;
     width: 100%;
+    height: 100%;
+    background: white;
+    z-index: 99999;
+    padding: 1.5cm !important;
     border: none !important;
     box-shadow: none !important;
+  }
+  @page {
+    margin: 0;
   }
 }

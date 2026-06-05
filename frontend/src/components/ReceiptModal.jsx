@@ -53,7 +53,7 @@ const ReceiptModal = ({ isOpen, transaction, onClose }) => {
       <style>{`
         @media print {
           /* Hide all application containers */
-          body * {
+          body {
             visibility: hidden;
           }
           /* Show only the printable receipt */
@@ -61,21 +61,21 @@ const ReceiptModal = ({ isOpen, transaction, onClose }) => {
             visibility: visible;
           }
           #printable-receipt {
-            position: absolute;
+            position: fixed;
             left: 0;
             top: 0;
             width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 99999;
+            padding: 1.5cm !important;
             border: none !important;
             box-shadow: none !important;
-            padding: 0 !important;
             margin: 0 !important;
           }
           /* Suppress headers, footers and page margins */
           @page {
             margin: 0;
-          }
-          body {
-            margin: 1.5cm;
           }
         }
       `}</style>
@@ -98,11 +98,11 @@ const ReceiptModal = ({ isOpen, transaction, onClose }) => {
         {/* Printable Receipt area */}
         <div className="p-6 overflow-y-auto flex-1 text-left" id="printable-receipt">
           <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
-            <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center border border-emerald-100 shadow-xs mb-3">
-              <CheckCircle2 size={24} className="stroke-[2.5]" />
+            <div className="w-12 h-12 mb-2 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-slate-100 p-0.5 shadow-sm">
+              <img src="/Logo.jpeg" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-md font-black text-slate-800 tracking-tight">Ekaakshara Finance Services</h2>
-            <p className="text-[10px] text-slate-400 font-extrabold uppercase mt-0.5 tracking-wider">JLG Micro-Lending Portal</p>
+            <h2 className="text-md font-black text-slate-850 tracking-tight uppercase tracking-wide">Ekaakshara Finance Services</h2>
+            <p className="text-[9px] text-slate-450 font-extrabold uppercase mt-0.5 tracking-wider">JLG Micro-Lending Portal</p>
             
             <div className="mt-4 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
               <ShieldCheck size={12} /> Payment Successful
