@@ -182,10 +182,9 @@
   #root, 
   #root > div,
   main,
-  div:has(> #receipt-print-area),
-  div:has(> div > #receipt-print-area),
-  div:has(> #printable-receipt),
-  div:has(> div > #printable-receipt) {
+  div.fixed.inset-0,
+  div.rounded-3xl.shadow-2xl,
+  div.rounded-3xl.border-slate-100 {
     position: static !important;
     display: block !important;
     overflow: visible !important;
