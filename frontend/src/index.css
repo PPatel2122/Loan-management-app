@@ -180,10 +180,12 @@
 
   /* Reset layout constraints on all parent containers of the print areas */
   #root, 
-  #root > div, 
-  div[class*="inset-0"]:not(#receipt-print-area):not(#printable-receipt), 
-  div[class*="bg-white"]:not(#receipt-print-area):not(#printable-receipt), 
-  main {
+  #root > div,
+  main,
+  div:has(> #receipt-print-area),
+  div:has(> div > #receipt-print-area),
+  div:has(> #printable-receipt),
+  div:has(> div > #printable-receipt) {
     position: static !important;
     display: block !important;
     overflow: visible !important;
