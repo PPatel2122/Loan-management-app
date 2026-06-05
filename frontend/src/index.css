@@ -150,6 +150,10 @@
 
 /* Print Receipt Stylesheet */
 @media print {
+  html {
+    font-size: 11px !important;
+  }
+
   /* Hide all application containers by default */
   body {
     visibility: hidden !important;
