@@ -15,29 +15,46 @@ const getDashboardStats = async (req, res) => {
       // ==========================================
       // ADMIN DASHBOARD STATISTICS
       // ==========================================
-      const loans = await Loan.find({}).populate('groupId');
-      const installments = await Installment.find({}).populate({
-        path: 'loanId',
-        populate: { path: 'groupId' }
-      });
+      const today = new Date();
+      
+      // Get counts
       const totalGroupsCount = await Group.countDocuments({});
       const totalMembersCount = await Customer.countDocuments({});
+      const totalLoansCount = await Loan.countDocuments({});
 
-      const totalLoansCount = loans.length;
+      // Fetch installments in last 6 months for profit and daily charts
+      const sixMonthsAgo = new Date();
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       
-      // Total Collection: sum of (amount - remainingAmount + penalty) for all installments
-      const totalCollection = installments.reduce((acc, inst) => {
-        const paid = inst.amount - inst.remainingAmount;
-        return acc + (paid > 0 ? paid : 0) + (inst.penalty || 0);
-      }, 0);
+      const chartInstallments = await Installment.find({
+        paidDate: { $gte: sixMonthsAgo }
+      }).populate('loanId', 'amount totalAmount');
 
-      // Pending EMI: outstanding remainingAmount for unpaid/partially paid installments
-      const pendingEmiAmount = installments.reduce((acc, inst) => {
-        return acc + (inst.status !== 'Paid' ? inst.remainingAmount : 0);
-      }, 0);
+      // Aggregate overall total collection and pending EMI entirely in DB
+      const totalCollectionResult = await Installment.aggregate([
+        {
+          $project: {
+            paid: { $subtract: ["$amount", "$remainingAmount"] },
+            penalty: { $ifNull: ["$penalty", 0] }
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalPaid: { $sum: { $cond: [{ $gt: ["$paid", 0] }, "$paid", 0] } },
+            totalPenalty: { $sum: "$penalty" }
+          }
+        }
+      ]);
+      const totalCollection = (totalCollectionResult[0]?.totalPaid || 0) + (totalCollectionResult[0]?.totalPenalty || 0);
+
+      const pendingEmiResult = await Installment.aggregate([
+        { $match: { status: { $ne: 'Paid' } } },
+        { $group: { _id: null, total: { $sum: "$remainingAmount" } } }
+      ]);
+      const pendingEmiAmount = pendingEmiResult[0]?.total || 0;
 
       // Overdue Loans: active loans with at least one unpaid installment past its due date
-      const today = new Date();
       const overdueLoansCount = await Loan.countDocuments({
         status: 'Active',
         _id: {
@@ -56,7 +73,7 @@ const getDashboardStats = async (req, res) => {
         const dateStr = d.toISOString().split('T')[0];
         
         // Sum collections received on this specific day (paidDate matches)
-        const dayPaid = installments.reduce((acc, inst) => {
+        const dayPaid = chartInstallments.reduce((acc, inst) => {
           if (inst.paidDate) {
             const instPaidDateStr = new Date(inst.paidDate).toISOString().split('T')[0];
             if (instPaidDateStr === dateStr) {
@@ -83,7 +100,7 @@ const getDashboardStats = async (req, res) => {
         const month = d.getMonth(); // 0-11
         const monthName = d.toLocaleDateString('en-US', { month: 'short' });
         
-        const monthInterest = installments.reduce((acc, inst) => {
+        const monthInterest = chartInstallments.reduce((acc, inst) => {
           if (inst.paidDate && inst.loanId) {
             const pDate = new Date(inst.paidDate);
             if (pDate.getFullYear() === year && pDate.getMonth() === month) {
@@ -111,10 +128,10 @@ const getDashboardStats = async (req, res) => {
       for (const emp of employees) {
         const empGroups = await Group.find({ collector: emp._id });
         const empGroupIds = empGroups.map(g => g._id);
-        const empLoans = loans.filter(l => l.groupId && empGroupIds.some(id => id.toString() === l.groupId._id.toString()));
-        const empLoanIds = empLoans.map(l => l._id.toString());
+        const empLoans = await Loan.find({ groupId: { $in: empGroupIds } });
+        const empLoanIds = empLoans.map(l => l._id);
         
-        const empInstallments = installments.filter(inst => inst.loanId && empLoanIds.includes(inst.loanId._id.toString()));
+        const empInstallments = await Installment.find({ loanId: { $in: empLoanIds } });
         
         const target = empInstallments.reduce((acc, inst) => acc + inst.amount, 0);
         const actual = empInstallments.reduce((acc, inst) => {
