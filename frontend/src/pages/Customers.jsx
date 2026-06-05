@@ -2475,7 +2475,7 @@ const Customers = () => {
               ) : (
                 <form onSubmit={handleCollectionSubmit} className="space-y-6">
                   {/* Ledger Table */}
-                  <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-xs">
+                  <div className="border border-slate-100 rounded-2xl overflow-x-auto shadow-xs">
                     <table className="w-full text-left whitespace-nowrap border-collapse">
                       <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-[9px] uppercase tracking-widest">
                         <tr>

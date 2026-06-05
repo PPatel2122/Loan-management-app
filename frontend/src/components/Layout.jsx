@@ -44,14 +44,14 @@ const Layout = () => {
           {/* Top Navbar Badges */}
           <div className="flex items-center gap-3">
             {user?.role === 'Admin' ? (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-55/10 text-violet-750 border border-violet-500/10 shadow-sm shadow-violet-500/5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-55/10 text-violet-750 border border-violet-500/10 shadow-sm shadow-violet-500/5">
                 <Award size={13} className="text-violet-500 animate-pulse" />
-                Admin Authority
+                <span className="hidden sm:inline">Admin Authority</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm shadow-emerald-500/5">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm shadow-emerald-500/5">
                 <ShieldAlert size={13} className="text-emerald-500" />
-                Collector Console
+                <span className="hidden sm:inline">Collector Console</span>
               </span>
             )}
           </div>
